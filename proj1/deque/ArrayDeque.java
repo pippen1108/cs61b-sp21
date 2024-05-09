@@ -60,7 +60,7 @@ public class ArrayDeque <T> {
         T result = items[index];
         items[index] = null;
         nextFirst = index;
-        size--
+        size--;
         return result;
     }
 
