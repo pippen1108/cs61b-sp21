@@ -60,16 +60,18 @@ public class ArrayDeque <T> {
         T result = items[index];
         items[index] = null;
         nextFirst = index;
+        size--
         return result;
     }
 
 
     public T removeLast() {
         int index = getLastIndex();
-        T resul = items[index];
+        T result = items[index];
         items[index] = null;
         nextLast = index;
-        return null;
+        size--;
+        return result;
     }
 
 
