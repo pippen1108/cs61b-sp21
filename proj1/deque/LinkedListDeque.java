@@ -1,6 +1,4 @@
 package deque;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class LinkedListDeque<T> {
@@ -39,16 +37,18 @@ public class LinkedListDeque<T> {
         size++;
     }
 
-
-    public List<T> toList() {
-        List<T> returnList = new ArrayList<>();
+    public void printDeque(){
         Node next = sentinel.next;
+        StringBuilder result = new StringBuilder("");
         while (next != sentinel){
-            returnList.add(next.item);
+            result.append(next.item);
+            result.append(" ");
             next = next.next;
         }
-        return returnList;
+        result.append("\n");
+         System.out.println(result.toString());
     }
+
 
 
     public boolean isEmpty() {
@@ -68,6 +68,7 @@ public class LinkedListDeque<T> {
         T result = sentinel.next.item;
         sentinel.next = sentinel.next.next;
         sentinel.next.pre = sentinel;
+        size--;
         return result;
     }
 
@@ -79,6 +80,7 @@ public class LinkedListDeque<T> {
         T result = sentinel.pre.item;
         sentinel.pre = sentinel.pre.pre;
         sentinel.pre.next = sentinel;
+        size--;
         return result;
     }
 
@@ -96,7 +98,6 @@ public class LinkedListDeque<T> {
         }
         return current.item;
     }
-
 
     public T getRecursive(int index) {
         return getRecursivehelper(index, sentinel.next);

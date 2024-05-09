@@ -1,6 +1,8 @@
 package deque;
 
 import org.junit.Test;
+
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
 
@@ -33,7 +35,7 @@ public class LinkedListDequeTest {
 		assertEquals(3, lld1.size());
 
 		System.out.println("Printing out deque: ");
-		//lld1.printDeque();
+		lld1.printDeque();
 
     }
 
@@ -134,6 +136,74 @@ public class LinkedListDequeTest {
             assertEquals("Should have the same value", i, (double) lld1.removeLast(), 0.0);
         }
 
+    }
+    @Test
+    /** This test is for get */
+    public  void  getTest(){
+        LinkedListDeque<Integer> lld1 = new LinkedListDeque<Integer>();
+        assertThat(lld1.get(1)).isEqualTo(null);
+        lld1.addLast(1);
+        lld1.addLast(2);
+        lld1.addLast(3);
+        assertThat(lld1.get(1)).isEqualTo(2);
+        assertThat(lld1.get(-1)).isEqualTo(null);
+        assertThat(lld1.get(4)).isEqualTo(null);
 
     }
+
+    @Test
+    /** This test is for get */
+    public  void  getRecursive(){
+        LinkedListDeque<Integer> lld1 = new LinkedListDeque<Integer>();
+        assertThat(lld1.getRecursive(1)).isEqualTo(null);
+        lld1.addLast(1);
+        lld1.addLast(2);
+        lld1.addLast(3);
+        assertThat(lld1.getRecursive(1)).isEqualTo(2);
+        assertThat(lld1.getRecursive(-1)).isEqualTo(null);
+        assertThat(lld1.getRecursive(4)).isEqualTo(null);
+
+    }
+
+    @Test
+    /** In this test, we have three different assert statements that verify that removeFirst works correctly. */
+    public  void removeFirstTestBasic() {
+        LinkedListDeque<String> lld1 = new LinkedListDeque<String>();
+
+        lld1.addFirst("back"); // after this call we expect: ["back"]
+        lld1.addFirst("middle"); // after this call we expect: ["middle", "back"]
+        lld1.addFirst("front"); // after this call we expect: ["front", "middle", "back"]
+        lld1.removeFirst();
+        assertThat(lld1.toList()).containsExactly("middle", "back").inOrder();
+    }
+
+    @Test
+    /** In this test, we use only one assertThat statement. IMO this test is just as good as addFirstTestBasic.
+     *  In other words, the tedious work of adding the extra assertThat statements isn't worth it. */
+    public void removeLastTestBasic() {
+        LinkedListDeque<String> lld1 = new LinkedListDeque<String>();
+
+        lld1.addLast("front"); // after this call we expect: ["front"]
+        lld1.addLast("middle"); // after this call we expect: ["front", "middle"]
+        lld1.addLast("back"); // after this call we expect: ["front", "middle", "back"]
+        lld1.removeLast();
+    }
+
+    @Test
+    /** This test performs interspersed removeFirst and removeLast calls. */
+    public void removeFirstAndRemoveLastTest() {
+        LinkedListDeque<Integer> lld1 = new LinkedListDeque<Integer>();
+
+         /* I've decided to add in comments the state after each call for the convenience of the
+            person reading this test. Some programmers might consider this excessively verbose. */
+        lld1.addLast(0);   // [0]
+        lld1.addLast(1);   // [0, 1]
+        lld1.addFirst(-1); // [-1, 0, 1]
+        lld1.addLast(2);   // [-1, 0, 1, 2]
+        lld1.addFirst(-2); // [-2, -1, 0, 1, 2]
+        lld1.removeFirst(); // [-1, 0, 1, 2]
+        lld1.removeLast(); // [-1, 0, 1]
+    }
+
+
 }
