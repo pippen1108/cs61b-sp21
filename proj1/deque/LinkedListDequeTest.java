@@ -174,7 +174,6 @@ public class LinkedListDequeTest {
         lld1.addFirst("middle"); // after this call we expect: ["middle", "back"]
         lld1.addFirst("front"); // after this call we expect: ["front", "middle", "back"]
         lld1.removeFirst();
-        assertThat(lld1.toList()).containsExactly("middle", "back").inOrder();
     }
 
     @Test

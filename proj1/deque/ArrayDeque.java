@@ -72,7 +72,7 @@ public class ArrayDeque <T> {
 
 
     public T get(int index) {
-        return items[nextFirst + 1 + index];
+        return items[(nextFirst + 1 + index) % items.length];
     }
 
 }
