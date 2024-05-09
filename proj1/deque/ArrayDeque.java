@@ -1,5 +1,5 @@
 package deque;
-
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,17 +36,17 @@ public class ArrayDeque <T> {
         }
         size++;
     }
-    /** return the effect first index*/
+    /** return the effective first index*/
     private int getFirstIndex(){
-        return 0;
+        return  Math.floorMod(nextFirst + 1, items.length);
+    }
+    /** return the effective last index*/
+    private int getLastIndex(){
+        return Math.floorMod(nextLast - 1, items.length);
     }
 
-
     public boolean isEmpty() {
-        if (nextFirst == items.length - 1){
-            return items[0] == null;
-        }
-        return items[nextFirst + 1] == null;
+        return  size == 0;
     }
 
 
@@ -56,17 +56,19 @@ public class ArrayDeque <T> {
 
 
     public T removeFirst() {
-        T resul = items[nextFirst + 1];
-        items[nextFirst + 1] = null;
-        nextFirst++;
-        return null;
+        int index = getFirstIndex();
+        T result = items[index];
+        items[index] = null;
+        nextFirst = index;
+        return result;
     }
 
 
     public T removeLast() {
-        T resul = items[nextLast - 1];
-        items[nextLast - 1] = null;
-        nextLast--;
+        int index = getLastIndex();
+        T resul = items[index];
+        items[index] = null;
+        nextLast = index;
         return null;
     }
 
