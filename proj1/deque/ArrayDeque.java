@@ -57,6 +57,9 @@ public class ArrayDeque <T> {
 
     public T removeFirst() {
         int index = getFirstIndex();
+        if (items[index] == null){
+            return  null;
+        }
         T result = items[index];
         items[index] = null;
         nextFirst = index;
@@ -67,6 +70,9 @@ public class ArrayDeque <T> {
 
     public T removeLast() {
         int index = getLastIndex();
+        if (items[index] == null){
+            return  null;
+        }
         T result = items[index];
         items[index] = null;
         nextLast = index;
