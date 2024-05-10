@@ -1,13 +1,37 @@
 package deque;
 import java.lang.Math;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-public class ArrayDeque <T> {
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private int size;
     private T[] items;
     private int nextFirst;
     private int nextLast;
+
+
+
+    private class ArrayDequeIterator implements Iterator<T> {
+        private int wizPos = 0;
+
+        @Override
+        public boolean hasNext() {
+            return wizPos < size;
+        }
+
+        @Override
+        public T next() {
+            T result = get(wizPos);
+            wizPos++;
+            return result;
+        }
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new ArrayDequeIterator();
+    }
 
     public ArrayDeque() {
         items = (T[]) new Object[8];
@@ -15,6 +39,26 @@ public class ArrayDeque <T> {
         nextFirst = 0;
         nextLast = 1;
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other instanceof ArrayDeque otherDeque) {
+            if (this.size != otherDeque.size) {
+                return false;
+            }
+            for (int i = 0; i < this.size; i++) {
+                if (!this.get(i).equals(otherDeque.get(i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
 
     /** Resizes the underlying array to the target capacity. */
     private void resize(int capacity) {
@@ -33,9 +77,9 @@ public class ArrayDeque <T> {
             resize(2 * size);
         }
         items[nextFirst] = x;
-        if (nextFirst == 0){
+        if (nextFirst == 0) {
             nextFirst = items.length - 1;
-        }else {
+        } else {
             nextFirst--;
         }
         size++;
@@ -78,6 +122,17 @@ public class ArrayDeque <T> {
 
     public int size() {
         return size;
+    }
+
+    @Override
+    public void printDeque() {
+        StringBuilder result = new StringBuilder("");
+        for (T item : this){
+            result.append(item);
+            result.append(" ");
+        }
+        result.append("\n");
+        System.out.println(result.toString());
     }
 
 

@@ -1,7 +1,8 @@
 package deque;
+import java.util.Iterator;
 import java.util.List;
 
-public class LinkedListDeque<T> {
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     private class Node {
         public T item;
         public Node next;
@@ -17,13 +18,53 @@ public class LinkedListDeque<T> {
     private Node sentinel;
     private int size = 0;
 
+    private class LinkedListDequeIterator implements Iterator<T> {
+        private int wizPos = 0;
 
-    public LinkedListDeque(){
+        @Override
+        public boolean hasNext() {
+            return wizPos < size;
+        }
+
+        @Override
+        public T next() {
+            T result = get(wizPos);
+            wizPos++;
+            return result;
+        }
+    }
+
+
+
+    public LinkedListDeque() {
         sentinel = new Node(null, null, null);
         sentinel.pre = sentinel;
         sentinel.next = sentinel;
     }
 
+
+    public Iterator<T> iterator() {
+        return new LinkedListDequeIterator();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other instanceof LinkedListDeque otherDeque) {
+            if (this.size != otherDeque.size) {
+                return false;
+            }
+            for (int i = 0; i < this.size; i++) {
+                if (!this.get(i).equals(otherDeque.get(i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
 
     public void addFirst(T x) {
         sentinel.next = new Node(x, sentinel, sentinel.next);
@@ -36,6 +77,8 @@ public class LinkedListDeque<T> {
         sentinel.pre.pre.next = sentinel.pre;
         size++;
     }
+
+
 
     public void printDeque(){
         Node next = sentinel.next;
@@ -72,7 +115,6 @@ public class LinkedListDeque<T> {
         return result;
     }
 
-
     public T removeLast() {
         if (this.isEmpty()){
             return null;
@@ -83,7 +125,6 @@ public class LinkedListDeque<T> {
         size--;
         return result;
     }
-
 
     public T get(int index) {
         if (this.isEmpty()) {
