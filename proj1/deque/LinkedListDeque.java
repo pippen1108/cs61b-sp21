@@ -52,33 +52,37 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         if (this == other) {
             return true;
         }
-        if (other instanceof LinkedListDeque otherDeque) {
-            if (this.size != otherDeque.size) {
+        if (other == null) {
+            return false;
+        }
+        if (this.getClass() != other.getClass()) {
+            return false;
+        }
+        LinkedListDeque<T> otherDeque = (LinkedListDeque<T>) other;
+        if (this.size != otherDeque.size) {
+            return false;
+        }
+        for (int i = 0; i < this.size; i++) {
+            if (!this.get(i).equals(otherDeque.get(i))) {
                 return false;
             }
-            for (int i = 0; i < this.size; i++) {
-                if (!this.get(i).equals(otherDeque.get(i))) {
-                    return false;
-                }
-            }
-            return true;
         }
-        return false;
+        return true;
     }
 
+    @Override
     public void addFirst(T x) {
         sentinel.next = new Node(x, sentinel, sentinel.next);
         sentinel.next.next.pre = sentinel.next;
         size++;
     }
 
+    @Override
     public void addLast(T x) {
         sentinel.pre = new Node(x, sentinel.pre, sentinel);
         sentinel.pre.pre.next = sentinel.pre;
         size++;
     }
-
-
 
     public void printDeque(){
         Node next = sentinel.next;
@@ -92,18 +96,12 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
          System.out.println(result.toString());
     }
 
-
-
-    public boolean isEmpty() {
-        return sentinel.next == sentinel;
-    }
-
-
+    @Override
     public int size() {
         return size;
     }
 
-
+    @Override
     public T removeFirst() {
         if (this.isEmpty()){
             return null;
@@ -115,6 +113,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         return result;
     }
 
+    @Override
     public T removeLast() {
         if (this.isEmpty()){
             return null;
@@ -126,6 +125,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         return result;
     }
 
+    @Override
     public T get(int index) {
         if (this.isEmpty()) {
             return null;
