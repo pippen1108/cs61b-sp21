@@ -3,7 +3,10 @@ package deque;
 import edu.princeton.cs.algs4.StdRandom;
 import org.junit.jupiter.api.Test;
 
+import java.util.Comparator;
+
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Comparator.*;
 import static org.junit.Assert.*;
 
 public class ArrayDequeTest {
@@ -64,20 +67,21 @@ public class ArrayDequeTest {
 
     @Test
     public void randomizedTest() {
-        Deque<Integer> AL = new LinkedListDeque<>();
-        Deque<Integer> BL = new ArrayDeque<>();
-        int N = 100;
+        MaxArrayDeque<Integer> AL = new MaxArrayDeque<Integer>(Comparator.naturalOrder());
+        MaxArrayDeque<Integer> BL = new MaxArrayDeque<Integer>(Comparator.naturalOrder());
+        int N = 10;
+        for (int i = 0; i < N; i += 1) {
+            // addLast
+            int randVal = StdRandom.uniform(0, 100);
+            AL.addLast(randVal);
+        }
         for (int i = 0; i < N; i += 1) {
             // addLast
             int randVal = StdRandom.uniform(0, 100);
             BL.addLast(randVal);
         }
-        N = 100;
-        for (int i = 0; i < N; i += 1) {
-            // addLast
-            int randVal = StdRandom.uniform(0, 100);
-            BL.removeLast();
-        }
+        AL.max();
+        BL.max();
     }
 
 }

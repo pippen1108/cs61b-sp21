@@ -144,7 +144,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         return getRecursivehelper(index, sentinel.next);
     }
 
-    public T getRecursivehelper(int index, Node node){
+    private T getRecursivehelper(int index, Node node){
         if (this.isEmpty()) {
             return null;
         }
