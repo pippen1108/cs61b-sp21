@@ -1,5 +1,6 @@
 package deque;
 
+import edu.princeton.cs.algs4.StdRandom;
 import org.junit.jupiter.api.Test;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -59,6 +60,19 @@ public class ArrayDequeTest {
         assertThat(lld1.get(-1)).isEqualTo(null);
         assertThat(lld1.get(4)).isEqualTo(null);
 
+    }
+
+    @Test
+    public void randomizedTest() {
+        ArrayDeque<Integer> AL = new ArrayDeque<>();
+        ArrayDeque<Integer> BL = new ArrayDeque<>();
+        int N = 5000;
+        for (int i = 0; i < N; i += 1) {
+            // addLast
+            int randVal = StdRandom.uniform(0, 100);
+            AL.addFirst(randVal);
+            BL.addLast(randVal);
+        }
     }
 
 }

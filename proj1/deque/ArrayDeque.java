@@ -51,8 +51,8 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (this.getClass() != other.getClass()) {
             return false;
         }
-        ArrayDeque<T> otherDeque = (ArrayDeque<T>) other;
-        if (this.size != otherDeque.size) {
+        Deque<T> otherDeque = (Deque<T>) other;
+        if (this.size != otherDeque.size()) {
             return false;
         }
         for (int i = 0; i < this.size; i++) {
@@ -71,7 +71,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             a[i] = get(i);
         }
         items = a;
-        nextFirst = capacity;
+        nextFirst = capacity - 1;
         nextLast = capacity / 2;
     }
 
