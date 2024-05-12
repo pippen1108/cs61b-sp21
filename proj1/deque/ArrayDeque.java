@@ -48,9 +48,6 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (other == null) {
             return false;
         }
-        if (this.getClass() != other.getClass()) {
-            return false;
-        }
         Deque<T> otherDeque = (Deque<T>) other;
         if (this.size != otherDeque.size()) {
             return false;
@@ -116,7 +113,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (items.length < 16) {
             return  false;
         }
-        return (double) size - 1 / (double) items.length < 0.25;
+        return (double) (size - 1) / (double) items.length < 0.25;
     }
 
     @Override
