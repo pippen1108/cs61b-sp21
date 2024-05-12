@@ -1,12 +1,12 @@
 package deque;
 import java.util.Iterator;
-import java.util.List;
+
 
 public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     private class Node {
-        public T item;
-        public Node next;
-        public Node pre;
+        private T item;
+        private Node next;
+        private Node pre;
 
         public Node(T i, Node p, Node n) {
             item = i;
@@ -84,16 +84,16 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         size++;
     }
 
-    public void printDeque(){
+    public void printDeque() {
         Node next = sentinel.next;
         StringBuilder result = new StringBuilder("");
-        while (next != sentinel){
+        while (next != sentinel) {
             result.append(next.item);
             result.append(" ");
             next = next.next;
         }
         result.append("\n");
-         System.out.println(result.toString());
+        System.out.println(result.toString());
     }
 
     @Override
@@ -103,7 +103,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
 
     @Override
     public T removeFirst() {
-        if (this.isEmpty()){
+        if (this.isEmpty()) {
             return null;
         }
         T result = sentinel.next.item;
@@ -115,7 +115,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
 
     @Override
     public T removeLast() {
-        if (this.isEmpty()){
+        if (this.isEmpty()) {
             return null;
         }
         T result = sentinel.pre.item;
@@ -144,14 +144,14 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         return getRecursivehelper(index, sentinel.next);
     }
 
-    private T getRecursivehelper(int index, Node node){
+    private T getRecursivehelper(int index, Node node) {
         if (this.isEmpty()) {
             return null;
         }
         if (index >= size || index < 0) {
             return null;
         }
-        if (index == 0){
+        if (index == 0) {
             return node.item;
         }
         return getRecursivehelper(index - 1, node.next);

@@ -1,15 +1,12 @@
 package deque;
-import java.lang.Math;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 public class ArrayDeque<T> implements Deque<T> {
     private int size;
     private T[] items;
     private int nextFirst;
     private int nextLast;
-
+    private int leastLength;
 
 
     private class ArrayDequeIterator implements Iterator<T> {
@@ -95,25 +92,25 @@ public class ArrayDeque<T> implements Deque<T> {
             resize(2 * size);
         }
         items[nextLast] = x;
-        if (nextLast == items.length - 1){
+        if (nextLast == items.length - 1) {
             nextLast = 0;
-        }else {
+        } else {
             nextLast++;
         }
         size++;
     }
     /** return the effective first index*/
-    private int getFirstIndex(){
+    private int getFirstIndex() {
         return  Math.floorMod(nextFirst + 1, items.length);
     }
     /** return the effective last index*/
-    private int getLastIndex(){
+    private int getLastIndex() {
         return Math.floorMod(nextLast - 1, items.length);
     }
 
     /** tell if Deque need resize down */
-    private boolean isNeedResizeDown(){
-        if (items.length < 16) {
+    private boolean isNeedResizeDown() {
+        if (items.length < leastLength) {
             return  false;
         }
         return (double) (size - 1) / (double) items.length < 0.25;
@@ -127,7 +124,7 @@ public class ArrayDeque<T> implements Deque<T> {
     @Override
     public void printDeque() {
         StringBuilder result = new StringBuilder("");
-        for (T item : this){
+        for (T item : this) {
             result.append(item);
             result.append(" ");
         }
@@ -137,11 +134,11 @@ public class ArrayDeque<T> implements Deque<T> {
 
     @Override
     public T removeFirst() {
-        if (isNeedResizeDown()){
+        if (isNeedResizeDown()) {
             resize(items.length / 2);
         }
         int index = getFirstIndex();
-        if (items[index] == null){
+        if (items[index] == null) {
             return  null;
         }
         T result = items[index];
@@ -153,11 +150,11 @@ public class ArrayDeque<T> implements Deque<T> {
 
     @Override
     public T removeLast() {
-        if (isNeedResizeDown()){
+        if (isNeedResizeDown()) {
             resize(items.length / 2);
         }
         int index = getLastIndex();
-        if (items[index] == null){
+        if (items[index] == null) {
             return  null;
         }
         T result = items[index];
