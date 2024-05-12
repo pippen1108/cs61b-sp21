@@ -8,7 +8,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         private Node next;
         private Node pre;
 
-         Node(T i, Node p, Node n) {
+        Node(T i, Node p, Node n) {
             item = i;
             pre = p;
             next = n;
