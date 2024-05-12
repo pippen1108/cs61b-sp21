@@ -1,12 +1,12 @@
 package deque;
 import java.util.Iterator;
 
-public class ArrayDeque<T> implements Deque<T> {
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private int size;
     private T[] items;
     private int nextFirst;
     private int nextLast;
-    private int leastLength;
+    private int leastLength = 16;
 
 
     private class ArrayDequeIterator implements Iterator<T> {
