@@ -30,19 +30,19 @@ public class Commit implements Serializable {
     private String message;
     private Date timestamp;
     private String parent_string;
-    private transient Commit parent_commit
+    private transient Commit parent_commit;
     public TreeMap<String, String> blobmap = new TreeMap<>();
     /** for the initial commit*/
     public Commit () {
         message = "initial commit";
         timestamp = new Date(0);
-        parent = null;
+        parent_string = null;
     }
 
     public Commit (String message, String prentid) {
         message = "initial commit";
         timestamp = new Date();
-        parent = prentid;
+        parent_commit = prentid;
     }
 
 
