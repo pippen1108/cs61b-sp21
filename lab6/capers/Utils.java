@@ -139,10 +139,7 @@ class Utils {
      * @param message message to print
      */
     public static void exitWithError(String message) {
-        if (message != null && !message.equals("")) {
-            System.out.println(message);
-        }
-        System.exit(-1);
+
     }
 
     /** Return a RuntimeException whose message is composed from MSG and ARGS as

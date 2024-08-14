@@ -39,7 +39,7 @@ public class Dog implements Serializable{
      * @return Dog read from file
      */
     public static Dog fromFile(String name) {
-        return readObject(join(join(CapersRepository.CAPERS_FOLDER, "dogs"), name), Dog.class);
+        return readObject(join(CapersRepository.CAPERS_FOLDER, "dogs", name), Dog.class);
     }
 
     /**
@@ -55,7 +55,7 @@ public class Dog implements Serializable{
      * Saves a dog to a file for future use.
      */
     public void saveDog() throws IOException {
-        File dogFile = join(join(CapersRepository.CAPERS_FOLDER, "dogs"), name);
+        File dogFile = join(CapersRepository.CAPERS_FOLDER, "dogs", name);
         dogFile.createNewFile();
         writeObject(dogFile, this);
     }
