@@ -29,8 +29,7 @@ public class Commit implements Serializable {
     /** The message of this Commit. */
     private String message;
     private Date timestamp;
-    private String parent_string;
-    private transient Commit parent_commit;
+    private String parent_string;;
     public TreeMap<String, String> blobmap = new TreeMap<>();
     /** for the initial commit*/
     public Commit () {
@@ -40,11 +39,21 @@ public class Commit implements Serializable {
     }
 
     public Commit (String message, String prentid) {
-        message = "initial commit";
+        this.message = message;
         timestamp = new Date();
         parent_string = prentid;
+        blobmap = readCommit(prentid).blobmap;
     }
 
+    public String getMessage() {
+        return message;
+    }
+    public Date getTimestamp() {
+        return timestamp;
+    }
+    public String getParent_string() {
+        return parent_string;
+    }
 
     // write commit to file
     public void saveCommit(String name) throws IOException {
@@ -55,7 +64,7 @@ public class Commit implements Serializable {
 
     public static Commit CurrentCommit(){
         String current_branch = readContentsAsString(Repository.HEADS_F);
-        String commit_hash = readContentsAsString(join(Repository.REF_DIR, current_branch));
+        String commit_hash = readContentsAsString(join(Repository.HEADS_DIR, current_branch));
         return readCommit(commit_hash);
     }
 

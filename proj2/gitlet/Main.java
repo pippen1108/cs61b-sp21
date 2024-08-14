@@ -18,6 +18,7 @@ public class Main {
              throw new IllegalArgumentException("Must have at least one argument");
         }
         String firstArg = args[0];
+        String text;
         switch(firstArg) {
             case "init":
                 // TODO: handle the `init` command
@@ -25,13 +26,34 @@ public class Main {
                 break;
             case "add":
                 validateNumArgs("add", args, 2);
-                String text = args[1];
+                text = args[1];
                 Repository.add(text);
                 break;
             case "commit":
                 validateNumArgs("commit", args, 2);
+                text = args[1];
+                Repository.commit(text);
+                break;
+            case "log":
+                validateNumArgs("log", args, 1);
+                Repository.log();
+                break;
+            case "checkout":
+                if (args.length == 3 && args[1].equals("--")) {
+                    String fileName = args[2];
+                    Repository.checkout(fileName);
+                } else if (args.length == 4 && args[2].equals("--")) {
+                    String commitId = args[1];
+                    String fileName = args[3];
+                    Repository.checkout(fileName, commitId);
+                } else {
+                    throw new GitletException("Incorrect operands.");
+                }
+                break;
+
             // TODO: FILL THE REST IN
         }
+
     }
 
 

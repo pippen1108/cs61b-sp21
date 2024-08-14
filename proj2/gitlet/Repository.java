@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.TreeMap;
 
 import static gitlet.Utils.*;
@@ -70,13 +71,13 @@ public class Repository {
         setHEADpointer("master");
     }
 
-    public static void add(String file_name){
+    public static void add(String file_name) throws IOException {
         File file_file = join(CWD, file_name);
         if (!file_file.exists()){
             throw new GitletException("File does not exist. ");
         }
         // file content hash in the CWD
-        String content_hash = sha1(readContents(file_file));
+        String content_hash = sha1(serialize(readContentsAsString(file_file)));
 
         //current commmit
         Commit current_commit = Commit.CurrentCommit();
@@ -86,8 +87,12 @@ public class Repository {
             stage_addition.remove(file_name);
         } else {
             stage_addition.put(file_name, content_hash);
+            //create blob
+            Blob add = new Blob(file_name);
+            add.saveBlob();
         }
         stage_removal.remove(file_name);
+
 
         //update the staging area file
         writeStageAddition(stage_addition);
@@ -95,10 +100,84 @@ public class Repository {
 
     }
 
-    public static void commit(String message){
+    public static void commit(String message) throws IOException {
+        if (message.isEmpty()) {
+            throw new GitletException("Please enter a commit message.");
+        }
 
+        TreeMap<String, String> stage_addition = readSageAddition();
+        TreeMap<String, String> stage_removal = readSageRemoval();
+        if (stage_addition.isEmpty() && stage_removal.isEmpty()) {
+            throw new GitletException("No changes added to the commit.");
+        }
+
+        Commit current = Commit.CurrentCommit();
+
+        Commit new_commit = new Commit(message, sha1(serialize(current)));
+
+        for (String key : stage_addition.keySet()){
+            new_commit.blobmap.put(key, stage_addition.get(key));
+            stage_addition.remove(key);
+        }
+        for (String key : stage_removal.keySet()){
+            new_commit.blobmap.remove(key);
+            stage_removal.remove(key);
+        }
+
+
+        //update the staging area file
+        writeStageAddition(stage_addition);
+        writeStageRemoval(stage_removal);
+
+        //store the commit file
+        String commitName = sha1(serialize(new_commit));
+        new_commit.saveCommit(commitName);
+
+        setBranch(getCurrentBranch(), commitName);
     }
 
+
+    public static void log(){
+        StringBuilder log = new StringBuilder();
+        Commit last = Commit.CurrentCommit();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z");
+
+        while (last != null){
+            log.append("===\n");
+            log.append(String.format("commit %s\n", sha1(serialize(last))));
+            String formatDate = dateFormat.format(last.getTimestamp());
+            log.append(String.format("Date: %s\n", formatDate));
+            log.append(last.getMessage());
+            log.append("\n\n");
+
+            if (last.getParent_string() == null) {
+                break;
+            }
+
+            last = Commit.readCommit(last.getParent_string());
+        }
+        System.out.println(log.toString());
+    }
+
+    public static void checkout(String fileName) {
+        Commit current = Commit.CurrentCommit();
+        if (!current.blobmap.containsKey(fileName)){
+            throw new GitletException("File does not exist in that commit.");
+        } else {
+            String contentString = readObject(join(BOLB_DIR, current.blobmap.get(fileName)), String.class);
+            writeContents(join(CWD, fileName), contentString);
+        }
+    }
+
+    public static void checkout(String fileName, String commitHash) {
+        Commit current = Commit.readCommit(commitHash);
+        if (!current.blobmap.containsKey(fileName)){
+            throw new GitletException("File does not exist in that commit.");
+        } else {
+            String contentString = readObject(join(BOLB_DIR, current.blobmap.get(fileName)), String.class);
+            writeContents(join(CWD, fileName), contentString);
+        }
+    }
 
 
     public static TreeMap readSageAddition(){
@@ -136,8 +215,13 @@ public class Repository {
         writeContents(branch_file, commitHash);
     }
 
-    public static void setBranch(File branch, String commitHash){
-        writeContents(branch, commitHash);
+    private static String getCurrentBranch(){
+        return readContentsAsString(Repository.HEADS_F);
+    }
+
+
+    public static void setBranch(String branch, String commitHash){
+        writeContents(join(HEADS_DIR, branch), commitHash);
     }
 
 
