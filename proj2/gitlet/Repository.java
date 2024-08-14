@@ -101,11 +101,11 @@ public class Repository {
 
 
 
-    public static TreeMap<String, String>  readSageAddition(){
+    public static TreeMap readSageAddition(){
         return readObject(ADDITION_F, TreeMap.class);
     }
 
-    public static TreeMap<String, String>  readSageRemoval(){
+    public static TreeMap readSageRemoval(){
         return readObject(REMOVAL_F, TreeMap.class);
     }
 

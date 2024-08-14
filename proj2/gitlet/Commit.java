@@ -42,7 +42,7 @@ public class Commit implements Serializable {
     public Commit (String message, String prentid) {
         message = "initial commit";
         timestamp = new Date();
-        parent_commit = prentid;
+        parent_string = prentid;
     }
 
 
