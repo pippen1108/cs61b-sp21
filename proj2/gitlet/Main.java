@@ -50,7 +50,8 @@ public class Main {
                     throw new GitletException("Incorrect operands.");
                 }
                 break;
-
+            default:
+                throw new IllegalArgumentException("Unknown command: " + firstArg);
             // TODO: FILL THE REST IN
         }
 
