@@ -12,49 +12,54 @@ public class Main {
     /** Usage: java gitlet.Main ARGS, where ARGS contains
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
-    public static void main(String[] args) throws IOException {
-        // TODO: what if args is empty?
-        if (args.length == 0) {
-             throw new IllegalArgumentException("Must have at least one argument");
+    public static void main(String[] args) {
+        try {
+            if (args.length == 0) {
+                throw new IllegalArgumentException("Must have at least one argument");
+            }
+            String firstArg = args[0];
+            String text;
+            switch (firstArg) {
+                case "init":
+                    Repository.initialCommit();
+                    break;
+                case "add":
+                    validateNumArgs("add", args, 2);
+                    text = args[1];
+                    Repository.add(text);
+                    break;
+                case "commit":
+                    validateNumArgs("commit", args, 2);
+                    text = args[1];
+                    Repository.commit(text);
+                    break;
+                case "log":
+                    validateNumArgs("log", args, 1);
+                    Repository.log();
+                    break;
+                case "checkout":
+                    if (args.length == 3 && args[1].equals("--")) {
+                        String fileName = args[2];
+                        Repository.checkout(fileName);
+                    } else if (args.length == 4 && args[2].equals("--")) {
+                        String commitId = args[1];
+                        String fileName = args[3];
+                        Repository.checkout(fileName, commitId);
+                    } else {
+                        throw new GitletException("Incorrect operands.");
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown command: " + firstArg);
+            }
+        } catch (IOException e) {
+            System.err.println("An I/O error occurred: " + e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
+        } catch (IllegalArgumentException | GitletException e) {
+            System.err.println("Error: " + e.getMessage());
+            System.exit(1);
         }
-        String firstArg = args[0];
-        String text;
-        switch(firstArg) {
-            case "init":
-                // TODO: handle the `init` command
-                Repository.initialCommit();
-                break;
-            case "add":
-                validateNumArgs("add", args, 2);
-                text = args[1];
-                Repository.add(text);
-                break;
-            case "commit":
-                validateNumArgs("commit", args, 2);
-                text = args[1];
-                Repository.commit(text);
-                break;
-            case "log":
-                validateNumArgs("log", args, 1);
-                Repository.log();
-                break;
-            case "checkout":
-                if (args.length == 3 && args[1].equals("--")) {
-                    String fileName = args[2];
-                    Repository.checkout(fileName);
-                } else if (args.length == 4 && args[2].equals("--")) {
-                    String commitId = args[1];
-                    String fileName = args[3];
-                    Repository.checkout(fileName, commitId);
-                } else {
-                    throw new GitletException("Incorrect operands.");
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown command: " + firstArg);
-            // TODO: FILL THE REST IN
-        }
-
     }
 
 
