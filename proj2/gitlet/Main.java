@@ -37,6 +37,10 @@ public class Main {
                     validateNumArgs("log", args, 1);
                     Repository.log();
                     break;
+                case "global-log":
+                    validateNumArgs("global-log", args, 1);
+                    Repository.globalLog();
+                    break;
                 case "checkout":
                     if (args.length == 3 && args[1].equals("--")) {
                         String fileName = args[2];
@@ -48,6 +52,21 @@ public class Main {
                     } else {
                         throw new GitletException("Incorrect operands.");
                     }
+                    break;
+                case "branch":
+                    validateNumArgs("branch", args, 2);
+                    text = args[1];
+                    Repository.branch(text);
+                    break;
+                case "rm-branch":
+                    validateNumArgs("rm-branch", args, 2);
+                    text = args[1];
+                    Repository.rmBranch(text);
+                    break;
+                case "rm":
+                    validateNumArgs("rm", args, 2);
+                    text = args[1];
+                    Repository.rm(text);
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown command: " + firstArg);
@@ -73,7 +92,7 @@ public class Main {
      */
     public static void validateNumArgs(String cmd, String[] args, int n) {
         if (args.length != n) {
-            throw new RuntimeException(
+            throw new GitletException(
                     String.format("Invalid number of arguments for: %s.", cmd));
         }
     }
