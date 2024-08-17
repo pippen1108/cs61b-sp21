@@ -1,24 +1,22 @@
 package gitlet;
 
-// TODO: any imports you need here
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Date; // TODO: You'll likely use this in this class
+import java.util.Date; 
 import java.util.TreeMap;
 
 import static gitlet.Utils.*;
 
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author pippen
  */
 public class Commit implements Serializable {
     /**
-     * TODO: add instance variables here.
+     *
      *
      * List all instance variables of the Commit class here with a useful
      * comment above them describing what that variable represents and how that
@@ -28,19 +26,19 @@ public class Commit implements Serializable {
     /** The message of this Commit. */
     private final String message;
     private final Date timestamp;
-    private final String parent_string;;
+    private final String parentString;;
     public TreeMap<String, String> blobmap = new TreeMap<>();
     /** for the initial commit*/
-    public Commit () {
+    public Commit() {
         message = "initial commit";
         timestamp = new Date(0);
-        parent_string = null;
+        parentString = null;
     }
 
-    public Commit (String message, String prentid) {
+    public Commit(String message, String prentid) {
         this.message = message;
         timestamp = new Date();
-        parent_string = prentid;
+        parentString = prentid;
         blobmap = readCommit(prentid).blobmap;
     }
 
@@ -50,28 +48,26 @@ public class Commit implements Serializable {
     public Date getTimestamp() {
         return timestamp;
     }
-    public String getParent_string() {
-        return parent_string;
+    public String getParentString() {
+        return parentString;
     }
 
     // write commit to file
     public void saveCommit(String name) throws IOException {
-        File commit_file = join(Repository.COMMITS_DIR, name);
-        commit_file.createNewFile();
-        writeObject(commit_file, this);
+        File commitFile = join(Repository.COMMITS_DIR, name);
+        commitFile.createNewFile();
+        writeObject(commitFile, this);
     }
 
-    public static Commit CurrentCommit(){
-        String current_branch = readContentsAsString(Repository.HEADS_F);
-        String commit_hash = readContentsAsString(join(Repository.HEADS_DIR, current_branch));
-        return readCommit(commit_hash);
+    public static Commit currentCommit() {
+        String currentBranch = readContentsAsString(Repository.HEADS_F);
+        String commitHash = readContentsAsString(join(Repository.HEADS_DIR, currentBranch));
+        return readCommit(commitHash);
     }
 
 
-    public static Commit readCommit(String commithash){
-        File commit_file = join(Repository.COMMITS_DIR, commithash);
-        return readObject(commit_file, Commit.class);
+    public static Commit readCommit(String commithash) {
+        File commitFile = join(Repository.COMMITS_DIR, commithash);
+        return readObject(commitFile, Commit.class);
     }
-
-    /* TODO: fill in the rest of this class. */
 }

@@ -14,7 +14,8 @@ class GitletException extends RuntimeException {
 
     /** A GitletException MSG as its message. */
     GitletException(String msg) {
-        super(msg);
+        System.out.println(msg);
+        System.exit(0);
     }
 
 }
