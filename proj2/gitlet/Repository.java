@@ -48,7 +48,9 @@ public class Repository {
     
     public static void initialCommit() throws IOException {
         if (GITLET_DIR.exists()) {
-            throw new GitletException("A Gitlet version-control system already exists in the current directory.");
+            throw new GitletException(
+                    "A Gitlet version-control system already exists in the current directory."
+            );
         }
         GITLET_DIR.mkdir();
         REF_DIR.mkdir();
@@ -140,17 +142,16 @@ public class Repository {
         TreeMap<String, String> commitBlob = newCommit.getBlobmap();
         for (String key : stageAddition.keySet()) {
             commitBlob.put(key, stageAddition.get(key));
-            stageAddition.remove(key);
+            //stageAddition.remove(key);
         }
         for (String key : stageRemoval) {
             commitBlob.remove(key);
-            stageRemoval.remove(key);
+            //stageRemoval.remove(key);
         }
 
 
         //update the staging area file
-        writeStageAddition(stageAddition);
-        writeStageRemoval(stageRemoval);
+        createStage();
 
         //store the commit file
         String commitName = sha1(serialize(newCommit));
@@ -163,7 +164,9 @@ public class Repository {
     public static void log() {
         StringBuilder log = new StringBuilder();
         Commit last = Commit.currentCommit();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH);
+        SimpleDateFormat dateFormat = new SimpleDateFormat(
+                "EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH
+        );
 
         while (last != null) {
             log.append("===\n");
@@ -185,7 +188,9 @@ public class Repository {
 
     public static void globalLog() {
         StringBuilder log = new StringBuilder();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z");
+        SimpleDateFormat dateFormat = new SimpleDateFormat(
+                "EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH
+        );
         List<String> allCommits = plainFilenamesIn(COMMITS_DIR);
         assert allCommits != null;
         for (String commit : allCommits) {
@@ -206,7 +211,9 @@ public class Repository {
         if (!commitBlob.containsKey(fileName)) {
             throw new GitletException("File does not exist in that commit.");
         } else {
-            String contentString = readObject(join(BOLB_DIR, commitBlob.get(fileName)), String.class);
+            String contentString = readObject(
+                    join(BOLB_DIR, commitBlob.get(fileName)), String.class
+            );
             writeContents(join(CWD, fileName), contentString);
         }
     }
@@ -217,7 +224,9 @@ public class Repository {
         if (!commitBlob.containsKey(fileName)) {
             throw new GitletException("File does not exist in that commit.");
         } else {
-            String contentString = readObject(join(BOLB_DIR, commitBlob.get(fileName)), String.class);
+            String contentString = readObject(
+                    join(BOLB_DIR, commitBlob.get(fileName)), String.class
+            );
             writeContents(join(CWD, fileName), contentString);
         }
     }
@@ -234,7 +243,7 @@ public class Repository {
         Commit current = Commit.currentCommit();
         String commitHash = readContentsAsString(join(HEADS_DIR, branchName));
         Commit targetBranch = Commit.readCommit(commitHash);
-        List<String> CwdFiles = plainFilenamesIn(CWD);
+        List<String> cwdFiles = plainFilenamesIn(CWD);
 
         //if (plainFilenamesIn(CWD))
         // If a working file is untracked in the current branch and would be

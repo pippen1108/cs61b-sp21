@@ -15,7 +15,7 @@ public class Main {
     public static void main(String[] args) {
         try {
             if (args.length == 0) {
-                throw new IllegalArgumentException("Please enter a command.");
+                throw new GitletException("Please enter a command.");
             }
             String firstArg = args[0];
             String text;
@@ -69,7 +69,7 @@ public class Main {
                     Repository.rm(text);
                     break;
                 default:
-                    throw new IllegalArgumentException("No command with that name exists.");
+                    throw new GitletException("No command with that name exists.");
             }
         } catch (IOException e) {
             System.err.println("An I/O error occurred: " + e.getMessage());
