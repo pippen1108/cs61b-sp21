@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date; // TODO: You'll likely use this in this class
-import java.util.List;
 import java.util.TreeMap;
 
 import static gitlet.Utils.*;
@@ -27,9 +26,9 @@ public class Commit implements Serializable {
      */
 
     /** The message of this Commit. */
-    private String message;
-    private Date timestamp;
-    private String parent_string;;
+    private final String message;
+    private final Date timestamp;
+    private final String parent_string;;
     public TreeMap<String, String> blobmap = new TreeMap<>();
     /** for the initial commit*/
     public Commit () {

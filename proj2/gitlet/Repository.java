@@ -47,14 +47,10 @@ public class Repository {
 
 
     public static void initialCommit () throws IOException {
-        /**
-         * TODO: crate other needed file system
-         * TODO: create initial commit
-         * TODO: HEAD pointer
-         * TODO: master branch
-         */
         if (GITLET_DIR.exists()){
-            throw new GitletException("A Gitlet version-control system already exists in the current directory.");
+            //throw new GitletException("A Gitlet version-control system already exists in the current directory.");
+            System.out.println("A Gitlet version-control system already exists in the current directory.");
+            System.exit(0);
         }
         GITLET_DIR.mkdir();
         REF_DIR.mkdir();
