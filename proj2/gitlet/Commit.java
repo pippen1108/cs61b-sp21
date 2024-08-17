@@ -26,8 +26,8 @@ public class Commit implements Serializable {
     /** The message of this Commit. */
     private final String message;
     private final Date timestamp;
-    private final String parentString;;
-    public TreeMap<String, String> blobmap = new TreeMap<>();
+    private final String parentString;
+    private TreeMap<String, String> blobmap = new TreeMap<>();
     /** for the initial commit*/
     public Commit() {
         message = "initial commit";
@@ -69,5 +69,9 @@ public class Commit implements Serializable {
     public static Commit readCommit(String commithash) {
         File commitFile = join(Repository.COMMITS_DIR, commithash);
         return readObject(commitFile, Commit.class);
+    }
+
+    public TreeMap<String, String> getBlobmap() {
+        return blobmap;
     }
 }

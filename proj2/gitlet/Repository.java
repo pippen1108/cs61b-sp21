@@ -80,7 +80,8 @@ public class Repository {
         Commit currentCommit = Commit.currentCommit();
         TreeMap<String, String> stageAddition = readSageAddition();
         TreeSet<String> stageRemoval = readSageRemoval();
-        if (currentCommit.blobmap.containsKey(fileName) && contentHash.equals(currentCommit.blobmap.get(fileName))) {
+        TreeMap<String, String> commitBlob = currentCommit.getBlobmap();
+        if (commitBlob.containsKey(fileName) && contentHash.equals(commitBlob.get(fileName))) {
             stageAddition.remove(fileName);
         } else {
             stageAddition.put(fileName, contentHash);
@@ -107,7 +108,8 @@ public class Repository {
             writeStageAddition(stageAddition);
         } else {
             Commit currentCommit = Commit.currentCommit();
-            if (currentCommit.blobmap.containsKey(fileName)) {
+            TreeMap<String, String> commitBlob = currentCommit.getBlobmap();
+            if (commitBlob.containsKey(fileName)) {
                 stageRemoval.add(fileName);
                 restrictedDelete(fileName);
 
@@ -135,13 +137,13 @@ public class Repository {
         Commit current = Commit.currentCommit();
 
         Commit newCommit = new Commit(message, sha1(serialize(current)));
-
+        TreeMap<String, String> commitBlob = newCommit.getBlobmap();
         for (String key : stageAddition.keySet()) {
-            newCommit.blobmap.put(key, stageAddition.get(key));
+            commitBlob.put(key, stageAddition.get(key));
             stageAddition.remove(key);
         }
         for (String key : stageRemoval) {
-            newCommit.blobmap.remove(key);
+            commitBlob.remove(key);
             stageRemoval.remove(key);
         }
 
@@ -199,21 +201,23 @@ public class Repository {
     }
 
     public static void checkout(String fileName) {
-        Commit current = Commit.currentCommit();
-        if (!current.blobmap.containsKey(fileName)) {
+        Commit currentCommit = Commit.currentCommit();
+        TreeMap<String, String> commitBlob = currentCommit.getBlobmap();
+        if (!commitBlob.containsKey(fileName)) {
             throw new GitletException("File does not exist in that commit.");
         } else {
-            String contentString = readObject(join(BOLB_DIR, current.blobmap.get(fileName)), String.class);
+            String contentString = readObject(join(BOLB_DIR, commitBlob.get(fileName)), String.class);
             writeContents(join(CWD, fileName), contentString);
         }
     }
 
     public static void checkout(String fileName, String commitHash) {
-        Commit current = Commit.readCommit(commitHash);
-        if (!current.blobmap.containsKey(fileName)) {
+        Commit currentCommit = Commit.readCommit(commitHash);
+        TreeMap<String, String> commitBlob = currentCommit.getBlobmap();
+        if (!commitBlob.containsKey(fileName)) {
             throw new GitletException("File does not exist in that commit.");
         } else {
-            String contentString = readObject(join(BOLB_DIR, current.blobmap.get(fileName)), String.class);
+            String contentString = readObject(join(BOLB_DIR, commitBlob.get(fileName)), String.class);
             writeContents(join(CWD, fileName), contentString);
         }
     }
