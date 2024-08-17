@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -166,7 +167,7 @@ public class Repository {
     public static void log(){
         StringBuilder log = new StringBuilder();
         Commit last = Commit.CurrentCommit();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH);
 
         while (last != null){
             log.append("===\n");
