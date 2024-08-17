@@ -3,10 +3,7 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Locale;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 import static gitlet.Utils.*;
 
@@ -62,7 +59,7 @@ public class Repository {
         STAGE_DIR.mkdir();
         ADDITION_F.createNewFile();
         REMOVAL_F.createNewFile();
-        createStage();
+        createEmptyStage();
         Commit init = new Commit();
         String commitName = sha1(serialize(init));
         init.saveCommit(commitName);
@@ -142,16 +139,14 @@ public class Repository {
         TreeMap<String, String> commitBlob = newCommit.getBlobmap();
         for (String key : stageAddition.keySet()) {
             commitBlob.put(key, stageAddition.get(key));
-            //stageAddition.remove(key);
         }
         for (String key : stageRemoval) {
             commitBlob.remove(key);
-            //stageRemoval.remove(key);
         }
 
 
         //update the staging area file
-        createStage();
+        createEmptyStage();
 
         //store the commit file
         String commitName = sha1(serialize(newCommit));
@@ -219,6 +214,11 @@ public class Repository {
     }
 
     public static void checkout(String fileName, String commitHash) {
+        List<String> allCommits = plainFilenamesIn(COMMITS_DIR);
+        assert allCommits != null;
+        if (!allCommits.contains(commitHash)) {
+            throw new GitletException("No commit with that id exists.");
+        }
         Commit currentCommit = Commit.readCommit(commitHash);
         TreeMap<String, String> commitBlob = currentCommit.getBlobmap();
         if (!commitBlob.containsKey(fileName)) {
@@ -293,7 +293,7 @@ public class Repository {
         writeObject(REMOVAL_F, stage);
     }
 
-    public static void createStage() {
+    public static void createEmptyStage() {
         TreeMap<String, String> stageAddition = new TreeMap<>();
         writeObject(ADDITION_F, stageAddition);
         TreeSet<String> stageRemoval = new TreeSet<>();
