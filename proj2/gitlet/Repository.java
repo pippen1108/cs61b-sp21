@@ -252,7 +252,7 @@ public class Repository {
 
         String commitHash = readContentsAsString(join(HEADS_DIR, branchName));
         Commit targetCommit = Commit.readCommit(commitHash);
-        TreeMap<String, String> targetBlobs = targetCommit.getBlobmap();
+
         // put the version of file of the target commit and overwrite if it exists in the cwd
         overwriteWorkingDirectory(targetCommit);
         cleanUpFilesNotInTargetBranch(targetCommit);
@@ -288,6 +288,20 @@ public class Repository {
             }
         }
     }
+
+    public static void reset(String commitHash) throws IOException {
+        List<String> allCommits = plainFilenamesIn(COMMITS_DIR);
+        assert allCommits != null;
+        if (!allCommits.contains(commitHash)) {
+            throw new GitletException("No commit with that id exists.");
+        }
+        Commit targetCommit = Commit.readCommit(commitHash);
+        overwriteWorkingDirectory(targetCommit);
+        cleanUpFilesNotInTargetBranch(targetCommit);
+        createEmptyStage();
+        setBranch(getCurrentBranch(), commitHash);
+    }
+
     public static void status() {
         StringBuilder status = new StringBuilder();
         List<String> allBranches = plainFilenamesIn(HEADS_DIR);

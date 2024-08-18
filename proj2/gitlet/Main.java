@@ -64,6 +64,10 @@ public class Main {
                     validateNumArgs("find", args, 2);
                     text = args[1];
                     Repository.find(text);
+                case "reset":
+                    validateNumArgs("reset", args, 2);
+                    text = args[1];
+                    Repository.reset(text);
                 case "branch":
                     validateNumArgs("branch", args, 2);
                     text = args[1];
