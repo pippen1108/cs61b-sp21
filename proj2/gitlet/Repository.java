@@ -267,7 +267,7 @@ public class Repository {
             }
             status.append(String.format("%s\n", branch));
         }
-        status.append("\n\n");
+        status.append("\n");
 
         Set<String> stagedFiles =  readStageAddition().keySet();
         status.append("=== Staged Files ===\n");
@@ -276,7 +276,7 @@ public class Repository {
                 status.append(String.format("%s\n", stagedFile));
             }
         }
-        status.append("\n\n");
+        status.append("\n");
 
         TreeSet<String> removedFiles =  readStageRemoval();
         status.append("=== Removed Files ===\n");
@@ -285,13 +285,13 @@ public class Repository {
                 status.append(String.format("%s\n", removedFile));
             }
         }
-        status.append("\n\n");
+        status.append("\n");
 
         // extra credits
         status.append("=== Modifications Not Staged For Commit ===\n");
-        status.append("\n\n");
+        status.append("\n");
         status.append("=== Untracked Files ===\n");
-        status.append("\n\n");
+        status.append("\n");
         System.out.println(status);
     }
 
