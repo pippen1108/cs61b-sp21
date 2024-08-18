@@ -4,7 +4,9 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Date; 
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 import java.util.TreeMap;
 
 import static gitlet.Utils.*;
@@ -53,8 +55,11 @@ public class Commit implements Serializable {
     }
 
     // write commit to file
-    public void saveCommit(String name) throws IOException {
-        File commitFile = join(Repository.COMMITS_DIR, name);
+    public void saveCommit(String commitHash) throws IOException {
+        String commitDirString = commitHash.substring(0, 2);
+        File commitDir = join(Repository.COMMITS_DIR,  commitDirString);
+        commitDir.mkdir();
+        File commitFile = join(commitDir, commitHash);
         commitFile.createNewFile();
         writeObject(commitFile, this);
     }
@@ -65,9 +70,26 @@ public class Commit implements Serializable {
         return readCommit(commitHash);
     }
 
+    public static Commit findCommitWithPrefix(String prefix) {
+        String commitDirString = prefix.substring(0, 2);
+        if (!join(Repository.COMMITS_DIR, commitDirString).exists()){
+            return null;
+        } else {
+            List<String> commits =  plainFilenamesIn(join(Repository.COMMITS_DIR, commitDirString));
+            assert commits != null;
+            for (String commit : commits) {
+                if (commit.startsWith(prefix)) {
+                    return readCommit(commit);
+                }
+            }
+        }
+        return null;
+    }
 
-    public static Commit readCommit(String commithash) {
-        File commitFile = join(Repository.COMMITS_DIR, commithash);
+    public static Commit readCommit(String commitHash) {
+        String commitDirString = commitHash.substring(0, 2);
+        File commitDir = join(Repository.COMMITS_DIR,  commitDirString);
+        File commitFile = join(commitDir, commitHash);
         return readObject(commitFile, Commit.class);
     }
 

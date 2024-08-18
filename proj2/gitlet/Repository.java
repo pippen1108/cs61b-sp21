@@ -186,17 +186,21 @@ public class Repository {
         SimpleDateFormat dateFormat = new SimpleDateFormat(
                 "EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH
         );
-        List<String> allCommits = plainFilenamesIn(COMMITS_DIR);
-        assert allCommits != null;
-        for (String commit : allCommits) {
-            Commit commitObject = Commit.readCommit(commit);
-            log.append("===\n");
-            log.append(String.format("commit %s\n", commit));
-            String formatDate = dateFormat.format(commitObject.getTimestamp());
-            log.append(String.format("Date: %s\n", formatDate));
-            log.append(commitObject.getMessage());
-            log.append("\n\n");
+        for (String commitDir : Objects.requireNonNull(COMMITS_DIR.list())) {
+            List<String> allCommits = plainFilenamesIn(join(COMMITS_DIR, commitDir));
+            assert allCommits != null;
+            for (String commit : allCommits) {
+                Commit commitObject = Commit.readCommit(commit);
+                log.append("===\n");
+                log.append(String.format("commit %s\n", commit));
+                String formatDate = dateFormat.format(commitObject.getTimestamp());
+                log.append(String.format("Date: %s\n", formatDate));
+                log.append(commitObject.getMessage());
+                log.append("\n\n");
+            }
         }
+
+
         System.out.println(log);
     }
 
@@ -214,13 +218,19 @@ public class Repository {
     }
 
     public static void checkout(String fileName, String commitHash) {
-        List<String> allCommits = plainFilenamesIn(COMMITS_DIR);
-        assert allCommits != null;
-        if (!allCommits.contains(commitHash)) {
+        List<String> commitsDir = List.of(Objects.requireNonNull(COMMITS_DIR.list()));
+        String commitDirString = commitHash.substring(0, 2);
+        if (!commitsDir.contains(commitDirString)) {
             throw new GitletException("No commit with that id exists.");
+        } else {
+            List<String> commits = plainFilenamesIn(join(COMMITS_DIR, commitDirString));
+            assert commits != null;
+            if (!commits.contains(commitHash)) {
+                throw new GitletException("No commit with that id exists.");
+            }
         }
-        Commit currentCommit = Commit.readCommit(commitHash);
-        TreeMap<String, String> commitBlob = currentCommit.getBlobmap();
+        Commit targetCommit = Commit.findCommitWithPrefix(commitHash);
+        TreeMap<String, String> commitBlob = targetCommit.getBlobmap();
         if (!commitBlob.containsKey(fileName)) {
             throw new GitletException("File does not exist in that commit.");
         } else {
@@ -264,11 +274,15 @@ public class Repository {
             if (!currentBlobs.containsKey(fileName)
                     && targetCommit.getBlobmap().containsKey(fileName)
             ) {
-                throw new GitletException(
-                        "There is an untracked file in the way; delete it, or add and commit it first."
-                );
+                throwUntrackedFileException();
             }
         }
+    }
+
+    private static void throwUntrackedFileException() {
+        throw new GitletException(
+                "There is an untracked file in the way; delete it, or add and commit it first."
+        );
     }
 
     private static void overwriteWorkingDirectory(Commit targetCommit) throws IOException {
@@ -302,12 +316,16 @@ public class Repository {
     }
 
     public static void reset(String commitHash) throws IOException {
-        List<String> allCommits = plainFilenamesIn(COMMITS_DIR);
-        assert allCommits != null;
-        if (!allCommits.contains(commitHash)) {
-            throw new GitletException("No commit with that id exists.");
+        List<String> commitsDir = List.of(Objects.requireNonNull(COMMITS_DIR.list()));
+        String commitDirString = commitHash.substring(0, 2);
+        if (commitsDir.contains(commitDirString)) {
+            List<String> commits = plainFilenamesIn(join(COMMITS_DIR, commitDirString));
+            assert commits != null;
+            if (!commits.contains(commitHash)) {
+                throw new GitletException("No commit with that id exists.");
+            }
         }
-        Commit targetCommit = Commit.readCommit(commitHash);
+        Commit targetCommit = Commit.findCommitWithPrefix(commitHash);
         validateUntrackedFiles(targetCommit);
         overwriteWorkingDirectory(targetCommit);
         cleanUpFilesNotInTargetBranch(targetCommit);
@@ -366,13 +384,15 @@ public class Repository {
     }
 
     public static void find(String message) {
-        List<String> allCommits = plainFilenamesIn(COMMITS_DIR);
         StringBuilder find = new StringBuilder();
-        assert allCommits != null;
-        for (String commitString : allCommits) {
-            Commit commitObject = Commit.readCommit(commitString);
-            if (commitObject.getMessage().equals(message)) {
-                find.append(String.format("%s\n", commitString));
+        for (String commitDir : Objects.requireNonNull(COMMITS_DIR.list())) {
+            List<String> allCommits = plainFilenamesIn(join(COMMITS_DIR, commitDir));
+            assert allCommits != null;
+            for (String commitString : allCommits) {
+                Commit commitObject = Commit.readCommit(commitString);
+                if (commitObject.getMessage().equals(message)) {
+                    find.append(String.format("%s\n", commitString));
+                }
             }
         }
         if (find.isEmpty()) {
@@ -394,6 +414,9 @@ public class Repository {
         join(HEADS_DIR, branchName).delete();
 
     }
+
+
+
 
 
 
