@@ -53,6 +53,9 @@ public class Main {
                         String commitId = args[1];
                         String fileName = args[3];
                         Repository.checkout(fileName, commitId);
+                    } else if (args.length == 2) {
+                        String branch = args[1];
+                        Repository.checkoutBranch(branch);
                     } else {
                         throw new GitletException("Incorrect operands.");
                     }

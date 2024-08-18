@@ -231,7 +231,7 @@ public class Repository {
         }
     }
 
-    public static void checkoutBranch(String branchName) {
+    public static void checkoutBranch(String branchName) throws IOException {
         List<String> allBranches = plainFilenamesIn(HEADS_DIR);
         assert allBranches != null;
         if (!allBranches.contains(branchName)) {
@@ -240,18 +240,35 @@ public class Repository {
         if (getCurrentBranch().equals(branchName)) {
             throw new GitletException("No need to checkout the current branch.");
         }
-        Commit current = Commit.currentCommit();
+        Commit currentCommit = Commit.currentCommit();
+        TreeMap<String, String> currentBlobs = currentCommit.getBlobmap();
+        List<String> allCwdFiles = plainFilenamesIn(CWD);
+        assert allCwdFiles != null;
+        if (!currentBlobs.keySet().containsAll(allCwdFiles)) {
+            throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
+        }
+
+        TreeSet<String> copyCurrentBlobs = new TreeSet<>(currentBlobs.keySet());
         String commitHash = readContentsAsString(join(HEADS_DIR, branchName));
-        Commit targetBranch = Commit.readCommit(commitHash);
-        List<String> cwdFiles = plainFilenamesIn(CWD);
-
-        //if (plainFilenamesIn(CWD))
-        // If a working file is untracked in the current branch and would be
-        // overwritten by the checkout, print There is an untracked file in
-        // the way; delete it, or add and commit it first.
-
-
-
+        Commit targetCommit = Commit.readCommit(commitHash);
+        TreeMap<String, String> targetBlobs = targetCommit.getBlobmap();
+        // put the version of file of the target commit and overwrite if it exists in the cwd
+        for (String targetBlob : targetBlobs.keySet()) {
+            File newFile = join(CWD, targetBlob);
+            if (!newFile.exists()) {
+                newFile.createNewFile();
+            }
+            String contentString = readObject(join(BOLB_DIR, targetBlobs.get(targetBlob)), String.class);
+            writeContents(newFile, contentString);
+            copyCurrentBlobs.remove(targetBlob);
+        }
+        for (String remainBlob : copyCurrentBlobs) {
+            File deletedFile = join(CWD, remainBlob);
+            if (deletedFile.exists()) {
+                deletedFile.delete();
+            }
+        }
+        createEmptyStage();
         setHEADpointer(branchName);
     }
 
