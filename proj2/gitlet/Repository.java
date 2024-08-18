@@ -344,6 +344,10 @@ public class Repository {
     }
 
     public static void branch(String branchName) throws IOException {
+        List<String> allBranches = plainFilenamesIn(HEADS_DIR);
+        if (allBranches.contains(branchName)) {
+            throw new GitletException("A branch with that name already exists.");
+        }
         Commit current = Commit.currentCommit();
         String commitHash = sha1(serialize(current));
         createBranch(branchName, commitHash);
@@ -358,6 +362,9 @@ public class Repository {
             if (commitObject.getMessage().equals(message)) {
                 find.append(String.format("%s\n", commitString));
             }
+        }
+        if (find.isEmpty()) {
+            throw new GitletException("Found no commit with that message.\n");
         }
         System.out.println(find);
     }
