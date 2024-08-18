@@ -41,6 +41,10 @@ public class Main {
                     validateNumArgs("global-log", args, 1);
                     Repository.globalLog();
                     break;
+                case "status":
+                    validateNumArgs("status", args, 1);
+                    Repository.status();
+                    break;
                 case "checkout":
                     if (args.length == 3 && args[1].equals("--")) {
                         String fileName = args[2];

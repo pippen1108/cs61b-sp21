@@ -77,8 +77,8 @@ public class Repository {
 
         //current commit
         Commit currentCommit = Commit.currentCommit();
-        TreeMap<String, String> stageAddition = readSageAddition();
-        TreeSet<String> stageRemoval = readSageRemoval();
+        TreeMap<String, String> stageAddition = readStageAddition();
+        TreeSet<String> stageRemoval = readStageRemoval();
         TreeMap<String, String> commitBlob = currentCommit.getBlobmap();
         if (commitBlob.containsKey(fileName) && contentHash.equals(commitBlob.get(fileName))) {
             stageAddition.remove(fileName);
@@ -99,8 +99,8 @@ public class Repository {
 
 
     public static void rm(String fileName) {
-        TreeMap<String, String> stageAddition = readSageAddition();
-        TreeSet<String> stageRemoval = readSageRemoval();
+        TreeMap<String, String> stageAddition = readStageAddition();
+        TreeSet<String> stageRemoval = readStageRemoval();
 
         if (stageAddition.remove(fileName) != null) {
             //update the staging area file
@@ -127,8 +127,8 @@ public class Repository {
             throw new GitletException("Please enter a commit message.");
         }
 
-        TreeMap<String, String> stageAddition = readSageAddition();
-        TreeSet<String> stageRemoval = readSageRemoval();
+        TreeMap<String, String> stageAddition = readStageAddition();
+        TreeSet<String> stageRemoval = readStageRemoval();
         if (stageAddition.isEmpty() && stageRemoval.isEmpty()) {
             throw new GitletException("No changes added to the commit.");
         }
@@ -255,6 +255,46 @@ public class Repository {
         setHEADpointer(branchName);
     }
 
+    public static void status() {
+        StringBuilder status = new StringBuilder();
+        List<String> allBranches = plainFilenamesIn(HEADS_DIR);
+        assert allBranches != null;
+        status.append("=== Branches ===\n");
+        for (String branch : allBranches) {
+            if (branch.equals(getCurrentBranch())) {
+                status.append(String.format("*%s\n", branch));
+                continue;
+            }
+            status.append(String.format("%s\n", branch));
+        }
+        status.append("\n\n");
+
+        Set<String> stagedFiles =  readStageAddition().keySet();
+        status.append("=== Staged Files ===\n");
+        if (!stagedFiles.isEmpty()) {
+            for (String stagedFile : stagedFiles) {
+                status.append(String.format("%s\n", stagedFile));
+            }
+        }
+        status.append("\n\n");
+
+        TreeSet<String> removedFiles =  readStageRemoval();
+        status.append("=== Removed Files ===\n");
+        if (!removedFiles.isEmpty()) {
+            for (String removedFile : removedFiles) {
+                status.append(String.format("%s\n", removedFile));
+            }
+        }
+        status.append("\n\n");
+
+        // extra credits
+        status.append("=== Modifications Not Staged For Commit ===\n");
+        status.append("\n\n");
+        status.append("=== Untracked Files ===\n");
+        status.append("\n\n");
+        System.out.println(status);
+    }
+
     public static void branch(String branchName) throws IOException {
         Commit current = Commit.currentCommit();
         String commitHash = sha1(serialize(current));
@@ -276,11 +316,11 @@ public class Repository {
 
 
 
-    public static TreeMap readSageAddition() {
+    public static TreeMap readStageAddition() {
         return readObject(ADDITION_F, TreeMap.class);
     }
 
-    public static TreeSet readSageRemoval() {
+    public static TreeSet readStageRemoval() {
         return readObject(REMOVAL_F, TreeSet.class);
     }
 
