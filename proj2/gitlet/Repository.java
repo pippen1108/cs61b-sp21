@@ -245,14 +245,23 @@ public class Repository {
         List<String> allCwdFiles = plainFilenamesIn(CWD);
         assert allCwdFiles != null;
         if (!currentBlobs.keySet().containsAll(allCwdFiles)) {
-            throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
+            throw new GitletException(
+                    "There is an untracked file in the way; delete it, or add and commit it first."
+            );
         }
 
-        TreeSet<String> copyCurrentBlobs = new TreeSet<>(currentBlobs.keySet());
         String commitHash = readContentsAsString(join(HEADS_DIR, branchName));
         Commit targetCommit = Commit.readCommit(commitHash);
         TreeMap<String, String> targetBlobs = targetCommit.getBlobmap();
         // put the version of file of the target commit and overwrite if it exists in the cwd
+        overwriteWorkingDirectory(targetCommit);
+        cleanUpFilesNotInTargetBranch(targetCommit);
+        createEmptyStage();
+        setHEADpointer(branchName);
+    }
+
+    private static void overwriteWorkingDirectory(Commit targetCommit) throws IOException {
+        TreeMap<String, String> targetBlobs = targetCommit.getBlobmap();
         for (String targetBlob : targetBlobs.keySet()) {
             File newFile = join(CWD, targetBlob);
             if (!newFile.exists()) {
@@ -260,18 +269,25 @@ public class Repository {
             }
             String contentString = readObject(join(BOLB_DIR, targetBlobs.get(targetBlob)), String.class);
             writeContents(newFile, contentString);
-            copyCurrentBlobs.remove(targetBlob);
         }
+    }
+
+
+
+    private static void cleanUpFilesNotInTargetBranch(Commit targetCommit) {
+        Commit currentCommit = Commit.currentCommit();
+        TreeSet<String> copyCurrentBlobs = new TreeSet<>(currentCommit.getBlobmap().keySet());
+        TreeMap<String, String> targetBlobs = targetCommit.getBlobmap();
+
+        copyCurrentBlobs.removeAll(targetBlobs.keySet());
+
         for (String remainBlob : copyCurrentBlobs) {
             File deletedFile = join(CWD, remainBlob);
             if (deletedFile.exists()) {
                 deletedFile.delete();
             }
         }
-        createEmptyStage();
-        setHEADpointer(branchName);
     }
-
     public static void status() {
         StringBuilder status = new StringBuilder();
         List<String> allBranches = plainFilenamesIn(HEADS_DIR);
@@ -317,6 +333,20 @@ public class Repository {
         String commitHash = sha1(serialize(current));
         createBranch(branchName, commitHash);
     }
+
+    public static void find(String message) {
+        List<String> allCommits = plainFilenamesIn(COMMITS_DIR);
+        StringBuilder find = new StringBuilder();
+        assert allCommits != null;
+        for (String commitString : allCommits) {
+            Commit commitObject = Commit.readCommit(commitString);
+            if (commitObject.getMessage().equals(message)) {
+                find.append(String.format("%s\n", commitString));
+            }
+        }
+        System.out.println(find);
+    }
+
 
     public static void rmBranch(String branchName) {
         List<String> allBranches = plainFilenamesIn(HEADS_DIR);

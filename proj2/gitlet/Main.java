@@ -60,6 +60,10 @@ public class Main {
                         throw new GitletException("Incorrect operands.");
                     }
                     break;
+                case "find":
+                    validateNumArgs("find", args, 2);
+                    text = args[1];
+                    Repository.find(text);
                 case "branch":
                     validateNumArgs("branch", args, 2);
                     text = args[1];
