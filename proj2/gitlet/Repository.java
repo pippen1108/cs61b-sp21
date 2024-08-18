@@ -240,24 +240,31 @@ public class Repository {
         if (getCurrentBranch().equals(branchName)) {
             throw new GitletException("No need to checkout the current branch.");
         }
-        Commit currentCommit = Commit.currentCommit();
-        TreeMap<String, String> currentBlobs = currentCommit.getBlobmap();
-        List<String> allCwdFiles = plainFilenamesIn(CWD);
-        assert allCwdFiles != null;
-        if (!currentBlobs.keySet().containsAll(allCwdFiles)) {
-            throw new GitletException(
-                    "There is an untracked file in the way; delete it, or add and commit it first."
-            );
-        }
 
         String commitHash = readContentsAsString(join(HEADS_DIR, branchName));
         Commit targetCommit = Commit.readCommit(commitHash);
+
+        validateUntrackedFiles(targetCommit);
 
         // put the version of file of the target commit and overwrite if it exists in the cwd
         overwriteWorkingDirectory(targetCommit);
         cleanUpFilesNotInTargetBranch(targetCommit);
         createEmptyStage();
         setHEADpointer(branchName);
+    }
+
+
+    private static void validateUntrackedFiles(Commit targetCommit) {
+        Commit currentCommit = Commit.currentCommit();
+        TreeMap<String, String> currentBlobs = currentCommit.getBlobmap();
+        List<String> allCwdFiles = plainFilenamesIn(CWD);
+        assert allCwdFiles != null;
+
+        for (String fileName : allCwdFiles) {
+            if (!currentBlobs.containsKey(fileName) && targetCommit.getBlobmap().containsKey(fileName)) {
+                throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
+            }
+        }
     }
 
     private static void overwriteWorkingDirectory(Commit targetCommit) throws IOException {
