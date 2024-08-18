@@ -64,10 +64,12 @@ public class Main {
                     validateNumArgs("find", args, 2);
                     text = args[1];
                     Repository.find(text);
+                    break;
                 case "reset":
                     validateNumArgs("reset", args, 2);
                     text = args[1];
                     Repository.reset(text);
+                    break;
                 case "branch":
                     validateNumArgs("branch", args, 2);
                     text = args[1];
