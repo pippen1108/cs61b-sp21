@@ -267,7 +267,8 @@ public class Repository {
             if (!newFile.exists()) {
                 newFile.createNewFile();
             }
-            String contentString = readObject(join(BOLB_DIR, targetBlobs.get(targetBlob)), String.class);
+            String contentString = readObject(
+                    join(BOLB_DIR, targetBlobs.get(targetBlob)), String.class);
             writeContents(newFile, contentString);
         }
     }
