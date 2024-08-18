@@ -261,8 +261,12 @@ public class Repository {
         assert allCwdFiles != null;
 
         for (String fileName : allCwdFiles) {
-            if (!currentBlobs.containsKey(fileName) && targetCommit.getBlobmap().containsKey(fileName)) {
-                throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
+            if (!currentBlobs.containsKey(fileName)
+                    && targetCommit.getBlobmap().containsKey(fileName)
+            ) {
+                throw new GitletException(
+                        "There is an untracked file in the way; delete it, or add and commit it first."
+                );
             }
         }
     }
@@ -304,6 +308,7 @@ public class Repository {
             throw new GitletException("No commit with that id exists.");
         }
         Commit targetCommit = Commit.readCommit(commitHash);
+        validateUntrackedFiles(targetCommit);
         overwriteWorkingDirectory(targetCommit);
         cleanUpFilesNotInTargetBranch(targetCommit);
         createEmptyStage();
