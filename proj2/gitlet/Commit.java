@@ -4,9 +4,7 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 
 import static gitlet.Utils.*;
 
@@ -28,19 +26,32 @@ public class Commit implements Serializable {
     private final String message;
     private final Date timestamp;
     private final String parentString;
-    private TreeMap<String, String> blobmap = new TreeMap<>();
+    private final String mergetParentString;
+    private boolean isMerged = false;
+    private TreeMap<String, String> blobMap = new TreeMap<>();
     /** for the initial commit*/
     public Commit() {
         message = "initial commit";
         timestamp = new Date(0);
         parentString = null;
+        mergetParentString = null;
     }
 
-    public Commit(String message, String prentid) {
+    public Commit(String message, String prentId) {
         this.message = message;
         timestamp = new Date();
-        parentString = prentid;
-        blobmap = readCommit(prentid).blobmap;
+        parentString = prentId;
+        mergetParentString = null;
+        blobMap = readCommit(prentId).blobMap;
+    }
+
+    public Commit(String currentBranch, String givenBranch, String originParentId, String mergeParentId, TreeMap<String, String> blobMap) {
+        message = String.format("Merged %s into %s.", givenBranch, currentBranch);
+        timestamp = new Date();
+        parentString = originParentId;
+        mergetParentString = mergeParentId;
+        this.blobMap = blobMap;
+        isMerged = true;
     }
 
     public String getMessage() {
@@ -51,6 +62,10 @@ public class Commit implements Serializable {
     }
     public String getParentString() {
         return parentString;
+    }
+
+    public String getMergetParentString(){
+        return mergetParentString;
     }
 
     // write commit to file
@@ -93,6 +108,13 @@ public class Commit implements Serializable {
     }
 
     public TreeMap<String, String> getBlobmap() {
-        return blobmap;
+        return blobMap;
+    }
+
+    public List<String> getAllParents() {
+        List<String> parents = new LinkedList<>();
+        parents.add(parentString);
+        parents.add(mergetParentString);
+        return parents;
     }
 }

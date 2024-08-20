@@ -172,7 +172,7 @@ public class Repository {
             log.append("\n\n");
 
             if (last.getParentString() == null) {
-                break;
+                 break;
             }
 
             last = Commit.readCommit(last.getParentString());
@@ -180,6 +180,129 @@ public class Repository {
         System.out.println(log);
     }
 
+    public static void merge(String targetBranchString) throws IOException {
+        String targetCommitString = readContentsAsString(join(HEADS_DIR, targetBranchString));
+        Commit targetCommit = Commit.readCommit(targetCommitString);
+        validateUntrackedFiles(targetCommit);
+
+        List<String> currentParentCommits = getCommitsParentsList(Commit.currentCommit());
+
+
+        if (currentParentCommits.contains(targetCommitString)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+        }
+
+        List<String> targetCurrentParentCommits = getCommitsParentsList(targetCommit);
+        String currentCommitString = readContentsAsString(join(HEADS_DIR, getCurrentBranch()));
+
+        if (targetCurrentParentCommits.contains(currentCommitString)) {
+            checkout(targetBranchString);
+            System.out.println("Current branch fast-forwarded.");
+        }
+
+        Commit splitPoint = getLatestCommonAncestor(currentParentCommits, targetCurrentParentCommits);
+        assert splitPoint != null;
+        Set<String> splitBlob = splitPoint.getBlobmap().keySet();
+        Set<String> currentBlob = Commit.currentCommit().getBlobmap().keySet();
+        Set<String> targetBlob = targetCommit.getBlobmap().keySet();
+
+        Set<String> allFiles = new HashSet<>();
+        allFiles.addAll(splitBlob);
+        allFiles.addAll(currentBlob);
+        allFiles.addAll(targetBlob);
+// need to think strategy
+        for (String fileName : allFiles) {
+            if (!splitBlob.contains(fileName)) {
+                if (!currentBlob.contains(fileName)) {
+                    // situation 5
+                    add(fileName);
+                } else {
+                    if (targetBlob.contains(fileName)) {
+                        // conflict
+                        mergeConflict(targetCommit, fileName);
+                    }
+                    // situation 4
+                }
+            } else {
+                if (currentBlob.contains(fileName)) {
+                    if (splitPoint.getBlobmap().get(fileName).equals(Commit.currentCommit().getBlobmap().get(fileName))) {
+                        if (targetBlob.contains(fileName)) {
+                            //situation 1 or 3-A the same
+                            add(fileName);
+                        } else {
+                            //situation 6
+                            rm(fileName);
+                        }
+                    } else {
+                        if (targetBlob.contains(fileName)) {
+                            if (!splitPoint.getBlobmap().get(fileName).equals(targetCommit.getBlobmap().get(fileName))) {
+                                //conflict
+                                mergeConflict(targetCommit, fileName);
+                            }
+                            // situation 2
+                        } else {
+                            //conflict
+                            mergeConflict(targetCommit, fileName);
+                        }
+                    }
+                } else {
+                    if (targetBlob.contains(fileName)) {
+                        if (splitPoint.getBlobmap().get(fileName).equals(targetCommit.getBlobmap().get(fileName))) {
+                            // situation 7
+                            rm(fileName);
+                        }
+                    } else {
+                        //conflict
+                        mergeConflict(targetCommit, fileName);
+                    }
+                    // situation 3-A
+                }
+            }
+        }
+
+
+    }
+
+
+    private static void mergeConflict (Commit targetCommit, String fileName) throws IOException {
+        StringBuilder conflict = new StringBuilder("<<<<<<< HEAD");
+        String currentFileContent = readContentsAsString(join(BOLB_DIR, Commit.currentCommit().getBlobmap().get(fileName)));
+        conflict.append(currentFileContent);
+        conflict.append("=======");
+        String targetFileContent = readContentsAsString(join(BOLB_DIR, targetCommit.getBlobmap().get(fileName)));
+        conflict.append(targetFileContent);
+        conflict.append(">>>>>>>");
+        writeContents(join(CWD, fileName), conflict);
+        add(fileName);
+
+    }
+
+    private static List<String> getCommitsParentsList (Commit targetCommit) {
+        List<String> result = new LinkedList<>();
+
+        Queue<Commit> fringe = new LinkedList<>();
+        fringe.offer(targetCommit);
+
+        while (!fringe.isEmpty()) {
+            Commit nowCommit =  fringe.poll();
+            assert nowCommit != null;
+            for (String parentCommit : nowCommit.getAllParents()) {
+                Commit parentCommitObject = Commit.readCommit(parentCommit);
+                fringe.offer(parentCommitObject);
+                result.addFirst(parentCommit);
+            }
+        }
+        return result;
+    }
+
+    private static Commit getLatestCommonAncestor(List<String> currentCommitParentsList, List<String> givenCommitParentsList) {
+        for (String commitHash : currentCommitParentsList) {
+            if (givenCommitParentsList.contains(commitHash)) {
+                return Commit.readCommit(commitHash);
+            }
+        }
+        return null;
+    }
 
     public static void globalLog() {
         StringBuilder log = new StringBuilder();
@@ -406,7 +529,7 @@ public class Repository {
 
 
 
-
+//helper methods
 
     public static TreeMap readStageAddition() {
         return readObject(ADDITION_F, TreeMap.class);
