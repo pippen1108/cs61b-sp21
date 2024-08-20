@@ -198,13 +198,13 @@ public class Repository {
         validateUntrackedFiles(targetCommit);
         List<String> currentParentCommits = getCommitsParentsList(Commit.currentCommit());
         if (currentParentCommits.contains(targetCommitString)) {
-            System.out.println("Given branch is an ancestor of the current branch.");
+            throw new GitletException("Given branch is an ancestor of the current branch.");
         }
         List<String> targetCurrentParentCommits = getCommitsParentsList(targetCommit);
         String currentCommitString = readContentsAsString(join(HEADS_DIR, getCurrentBranch()));
         if (targetCurrentParentCommits.contains(currentCommitString)) {
             checkout(targetBranchString);
-            System.out.println("Current branch fast-forwarded.");
+            throw new GitletException("Current branch fast-forwarded.");
         }
         Commit splitPoint = getLatestCommonAncestor(currentParentCommits,
                 targetCurrentParentCommits);
