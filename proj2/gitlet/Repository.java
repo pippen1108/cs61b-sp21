@@ -168,9 +168,9 @@ public class Repository {
             log.append("===\n");
             log.append(String.format("commit %s\n", sha1(serialize(last))));
             if (last.getMergeParentString() != null) {
-                log.append(String.format("Merge: %s %s\n",
-                        last.getParentString().substring(0,7),
-                        last.getMergeParentString().substring(0, 7)));
+                log.append(String.format("Merge: %s %s\n"
+                        , last.getParentString().substring(0,7)
+                        , last.getMergeParentString().substring(0, 7)));
             }
             String formatDate = dateFormat.format(last.getTimestamp());
             log.append(String.format("Date: %s\n", formatDate));
@@ -224,6 +224,8 @@ public class Repository {
             if (!splitBlob.contains(fileName)) {
                 if (!currentBlob.contains(fileName)) {
                     join(CWD,fileName).createNewFile();
+                    writeContents(join(CWD, fileName)
+                            , readObject(join(BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class));
                     add(fileName);
                 } else {
                     if (targetBlob.contains(fileName)) {
@@ -277,12 +279,12 @@ public class Repository {
 
     private static void mergeConflict(Commit targetCommit, String fileName) throws IOException {
         StringBuilder conflict = new StringBuilder("<<<<<<< HEAD\n");
-        String currentFileContent = readContentsAsString(join(BOLB_DIR,
-                Commit.currentCommit().getBlobmap().get(fileName)));
+        String currentFileContent = readObject(join(BOLB_DIR,
+                Commit.currentCommit().getBlobmap().get(fileName)), String.class);
         conflict.append(String.format("%s\n", currentFileContent));
         conflict.append("=======\n");
-        String targetFileContent = readContentsAsString(join(
-                BOLB_DIR, targetCommit.getBlobmap().get(fileName)));
+        String targetFileContent = readObject(join(
+                BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class);
         conflict.append(String.format("%s\n", targetFileContent));
         conflict.append(">>>>>>>\n");
         writeContents(join(CWD, fileName), conflict.toString());
