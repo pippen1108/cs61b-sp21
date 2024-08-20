@@ -202,7 +202,6 @@ public class Repository {
         }
         List<String> targetCurrentParentCommits = getCommitsParentsList(targetCommit);
         String currentCommitString = readContentsAsString(join(HEADS_DIR, getCurrentBranch()));
-
         if (targetCurrentParentCommits.contains(currentCommitString)) {
             checkout(targetBranchString);
             System.out.println("Current branch fast-forwarded.");
@@ -222,7 +221,8 @@ public class Repository {
                 if (!currentBlob.contains(fileName)) {
                     join(CWD, fileName).createNewFile();
                     writeContents(join(CWD, fileName),
-                            readObject(join(BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class));
+                            readObject(join(BOLB_DIR,
+                                    targetCommit.getBlobmap().get(fileName)), String.class));
                     add(fileName);
                 } else {
                     if (targetBlob.contains(fileName)) {
@@ -236,7 +236,9 @@ public class Repository {
                         if (targetBlob.contains(fileName)) {
                             join(CWD, fileName).createNewFile();
                             writeContents(join(CWD, fileName),
-                                    readObject(join(BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class));
+                                    readObject(join(BOLB_DIR,
+                                            targetCommit.getBlobmap().get(fileName)),
+                                            String.class));
                             add(fileName);
                         } else {
                             rm(fileName);
@@ -271,7 +273,7 @@ public class Repository {
         List<String> allBranches = plainFilenamesIn(HEADS_DIR);
         assert allBranches != null;
         if (!allBranches.contains(branchName)) {
-            throw new GitletException("No such branch exists.");
+            throw new GitletException("A branch with that name does not exist.");
         }
     }
 
@@ -285,6 +287,7 @@ public class Repository {
 
     private static void mergeConflict(Commit targetCommit, String fileName) throws IOException {
         StringBuilder conflict = new StringBuilder("<<<<<<< HEAD\n");
+
         String currentFileContent = readObject(join(BOLB_DIR,
                 Commit.currentCommit().getBlobmap().get(fileName)), String.class);
         conflict.append(String.format("%s", currentFileContent));
@@ -292,7 +295,7 @@ public class Repository {
         String targetFileContent = readObject(join(
                 BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class);
         conflict.append(String.format("%s", targetFileContent));
-        conflict.append(">>>>>>>");
+        conflict.append(">>>>>>>\n");
         writeContents(join(CWD, fileName), conflict.toString());
         add(fileName);
         System.out.println("Encountered a merge conflict.");
