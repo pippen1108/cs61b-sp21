@@ -192,14 +192,12 @@ public class Repository {
         }
         TreeMap<String, String> stageAddition = readStageAddition();
         TreeSet<String> stageRemoval = readStageRemoval();
-        if (stageAddition.isEmpty() || stageRemoval.isEmpty()) {
+        if (!stageAddition.isEmpty() || !stageRemoval.isEmpty()) {
             throw new GitletException("You have uncommitted changes.");
         }
-
         String targetCommitString = readContentsAsString(join(HEADS_DIR, targetBranchString));
         Commit targetCommit = Commit.readCommit(targetCommitString);
         validateUntrackedFiles(targetCommit);
-
         List<String> currentParentCommits = getCommitsParentsList(Commit.currentCommit());
         if (currentParentCommits.contains(targetCommitString)) {
             System.out.println("Given branch is an ancestor of the current branch.");
@@ -211,7 +209,8 @@ public class Repository {
             checkout(targetBranchString);
             System.out.println("Current branch fast-forwarded.");
         }
-        Commit splitPoint = getLatestCommonAncestor(currentParentCommits, targetCurrentParentCommits);
+        Commit splitPoint = getLatestCommonAncestor(currentParentCommits,
+                targetCurrentParentCommits);
         assert splitPoint != null;
         Set<String> splitBlob = splitPoint.getBlobmap().keySet();
         Set<String> currentBlob = Commit.currentCommit().getBlobmap().keySet();
@@ -250,7 +249,8 @@ public class Repository {
                     }
                 } else {
                     if (targetBlob.contains(fileName)) {
-                        if (splitPoint.getBlobmap().get(fileName).equals(targetCommit.getBlobmap().get(fileName))) {
+                        if (splitPoint.getBlobmap().get(fileName).equals(
+                                targetCommit.getBlobmap().get(fileName))) {
                             rm(fileName);
                         }
                     } else {
@@ -270,7 +270,8 @@ public class Repository {
                 Commit.currentCommit().getBlobmap().get(fileName)));
         conflict.append(currentFileContent);
         conflict.append("=======");
-        String targetFileContent = readContentsAsString(join(BOLB_DIR, targetCommit.getBlobmap().get(fileName)));
+        String targetFileContent = readContentsAsString(join(
+                BOLB_DIR, targetCommit.getBlobmap().get(fileName)));
         conflict.append(targetFileContent);
         conflict.append(">>>>>>>");
         writeContents(join(CWD, fileName), conflict);
