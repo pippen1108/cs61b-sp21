@@ -290,11 +290,15 @@ public class Repository {
 
         String currentFileContent = readObject(join(BOLB_DIR,
                 Commit.currentCommit().getBlobmap().get(fileName)), String.class);
-        conflict.append(String.format("%s", currentFileContent));
+        if (!currentFileContent.isEmpty()) {
+            conflict.append(String.format("%s", currentFileContent));
+        }
         conflict.append("=======\n");
         String targetFileContent = readObject(join(
                 BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class);
-        conflict.append(String.format("%s", targetFileContent));
+        if (targetFileContent.isEmpty()){
+            conflict.append(String.format("%s", targetFileContent));
+        }
         conflict.append(">>>>>>>\n");
         writeContents(join(CWD, fileName), conflict.toString());
         add(fileName);
