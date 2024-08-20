@@ -103,7 +103,7 @@ public class Commit implements Serializable {
 
     public List<String> getAllParents() {
         List<String> parents = new LinkedList<>();
-        if (parents != null) {
+        if (parentString != null) {
             parents.add(parentString);
         }
         if (mergeParentString != null) {
