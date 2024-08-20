@@ -203,7 +203,7 @@ public class Repository {
         List<String> targetCurrentParentCommits = getCommitsParentsList(targetCommit);
         String currentCommitString = readContentsAsString(join(HEADS_DIR, getCurrentBranch()));
         if (targetCurrentParentCommits.contains(currentCommitString)) {
-            checkout(targetBranchString);
+            checkoutBranch(targetBranchString);
             throw new GitletException("Current branch fast-forwarded.");
         }
         Commit splitPoint = getLatestCommonAncestor(currentParentCommits,
@@ -296,7 +296,7 @@ public class Repository {
         conflict.append("=======\n");
         String targetFileContent = readObject(join(
                 BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class);
-        if (targetFileContent.isEmpty()){
+        if (!targetFileContent.isEmpty()){
             conflict.append(String.format("%s", targetFileContent));
         }
         conflict.append(">>>>>>>\n");
