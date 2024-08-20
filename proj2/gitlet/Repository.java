@@ -339,10 +339,8 @@ public class Repository {
                 "EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH
         );
         String[] commitDirs = Objects.requireNonNull(COMMITS_DIR.list());
-        List<String> commitDirList = Arrays.asList(commitDirs);
-        Collections.shuffle(commitDirList);
-
-        for (String commitDir : commitDirList) {
+        
+        for (String commitDir : commitDirs) {
             List<String> allCommits = plainFilenamesIn(join(COMMITS_DIR, commitDir));
             assert allCommits != null;
             for (String commit : allCommits) {
@@ -352,11 +350,16 @@ public class Repository {
                 String formatDate = dateFormat.format(commitObject.getTimestamp());
                 log.append(String.format("Date: %s\n", formatDate));
                 log.append(commitObject.getMessage());
-                log.append("\n\n");
+                if (!commitObject.getMessage().endsWith("\n")) {
+                    log.append("\n");
+                }
+                log.append("\n");
             }
         }
         System.out.println(log);
     }
+
+
 
     public static void checkout(String fileName) {
         Commit currentCommit = Commit.currentCommit();
