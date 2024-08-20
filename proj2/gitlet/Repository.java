@@ -172,7 +172,7 @@ public class Repository {
             log.append("\n\n");
 
             if (last.getParentString() == null) {
-                 break;
+                break;
             }
 
             last = Commit.readCommit(last.getParentString());
@@ -205,27 +205,23 @@ public class Repository {
         Set<String> splitBlob = splitPoint.getBlobmap().keySet();
         Set<String> currentBlob = Commit.currentCommit().getBlobmap().keySet();
         Set<String> targetBlob = targetCommit.getBlobmap().keySet();
-
         Set<String> allFiles = new HashSet<>();
         allFiles.addAll(splitBlob);
         allFiles.addAll(currentBlob);
         allFiles.addAll(targetBlob);
-// need to think strategy
         for (String fileName : allFiles) {
             if (!splitBlob.contains(fileName)) {
                 if (!currentBlob.contains(fileName)) {
-                    // situation 5
                     add(fileName);
                 } else {
                     if (targetBlob.contains(fileName)) {
-                        // conflict
                         mergeConflict(targetCommit, fileName);
                     }
-                    // situation 4
                 }
             } else {
                 if (currentBlob.contains(fileName)) {
-                    if (splitPoint.getBlobmap().get(fileName).equals(Commit.currentCommit().getBlobmap().get(fileName))) {
+                    if (splitPoint.getBlobmap().get(fileName).equals(
+                            Commit.currentCommit().getBlobmap().get(fileName))) {
                         if (targetBlob.contains(fileName)) {
                             //situation 1 or 3-A the same
                             add(fileName);
@@ -235,7 +231,8 @@ public class Repository {
                         }
                     } else {
                         if (targetBlob.contains(fileName)) {
-                            if (!splitPoint.getBlobmap().get(fileName).equals(targetCommit.getBlobmap().get(fileName))) {
+                            if (!splitPoint.getBlobmap().get(fileName).equals(
+                                    targetCommit.getBlobmap().get(fileName))) {
                                 //conflict
                                 mergeConflict(targetCommit, fileName);
                             }
@@ -264,9 +261,10 @@ public class Repository {
     }
 
 
-    private static void mergeConflict (Commit targetCommit, String fileName) throws IOException {
+    private static void mergeConflict(Commit targetCommit, String fileName) throws IOException {
         StringBuilder conflict = new StringBuilder("<<<<<<< HEAD");
-        String currentFileContent = readContentsAsString(join(BOLB_DIR, Commit.currentCommit().getBlobmap().get(fileName)));
+        String currentFileContent = readContentsAsString(join(BOLB_DIR,
+                Commit.currentCommit().getBlobmap().get(fileName)));
         conflict.append(currentFileContent);
         conflict.append("=======");
         String targetFileContent = readContentsAsString(join(BOLB_DIR, targetCommit.getBlobmap().get(fileName)));
@@ -277,8 +275,8 @@ public class Repository {
 
     }
 
-    private static List<String> getCommitsParentsList (Commit targetCommit) {
-        List<String> result = new LinkedList<>();
+    private static LinkedList<String> getCommitsParentsList(Commit targetCommit) {
+        LinkedList<String> result = new LinkedList<>();
 
         Queue<Commit> fringe = new LinkedList<>();
         fringe.offer(targetCommit);
@@ -295,7 +293,8 @@ public class Repository {
         return result;
     }
 
-    private static Commit getLatestCommonAncestor(List<String> currentCommitParentsList, List<String> givenCommitParentsList) {
+    private static Commit getLatestCommonAncestor(List<String> currentCommitParentsList,
+                                                  List<String> givenCommitParentsList) {
         for (String commitHash : currentCommitParentsList) {
             if (givenCommitParentsList.contains(commitHash)) {
                 return Commit.readCommit(commitHash);
@@ -526,10 +525,7 @@ public class Repository {
 
     }
 
-
-
-
-//helper methods
+    
 
     public static TreeMap readStageAddition() {
         return readObject(ADDITION_F, TreeMap.class);
