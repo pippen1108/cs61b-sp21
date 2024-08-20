@@ -182,11 +182,7 @@ public class Repository {
     }
 
     public static void merge(String targetBranchString) throws IOException {
-        List<String> allBranches = plainFilenamesIn(HEADS_DIR);
-        assert allBranches != null;
-        if (!allBranches.contains(targetBranchString)) {
-            throw new GitletException("No such branch exists.");
-        }
+        validateBranch(targetBranchString);
         if (getCurrentBranch().equals(targetBranchString)) {
             throw new GitletException("Cannot merge a branch with itself.");
         }
@@ -259,10 +255,19 @@ public class Repository {
                 }
             }
         }
-        String commitMessage = String.format("Merged %s into %s", currentCommitString, targetCommitString);
+        String commitMessage = String.format("Merged %s into %s",
+                currentCommitString, targetCommitString);
         commit(commitMessage, targetCommitString);
     }
 
+
+    private static void validateBranch(String branchName) {
+        List<String> allBranches = plainFilenamesIn(HEADS_DIR);
+        assert allBranches != null;
+        if (!allBranches.contains(branchName)) {
+            throw new GitletException("No such branch exists.");
+        }
+    }
 
     private static void mergeConflict(Commit targetCommit, String fileName) throws IOException {
         StringBuilder conflict = new StringBuilder("<<<<<<< HEAD");
