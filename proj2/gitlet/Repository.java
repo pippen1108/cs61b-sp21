@@ -1,9 +1,11 @@
 package gitlet;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 
 import static gitlet.Utils.*;
 
@@ -111,7 +113,6 @@ public class Repository {
             if (commitBlob.containsKey(fileName)) {
                 stageRemoval.add(fileName);
                 restrictedDelete(fileName);
-
                 writeStageRemoval(stageRemoval);
             } else {
                 throw new GitletException("No reason to remove the file.");
@@ -168,9 +169,9 @@ public class Repository {
             log.append("===\n");
             log.append(String.format("commit %s\n", sha1(serialize(last))));
             if (last.getMergeParentString() != null) {
-                log.append(String.format("Merge: %s %s\n"
-                        , last.getParentString().substring(0,7)
-                        , last.getMergeParentString().substring(0, 7)));
+                log.append(String.format("Merge: %s %s\n",
+                        last.getParentString().substring(0, 7),
+                        last.getMergeParentString().substring(0, 7)));
             }
             String formatDate = dateFormat.format(last.getTimestamp());
             log.append(String.format("Date: %s\n", formatDate));
@@ -191,11 +192,7 @@ public class Repository {
         if (getCurrentBranch().equals(targetBranchString)) {
             throw new GitletException("Cannot merge a branch with itself.");
         }
-        TreeMap<String, String> stageAddition = readStageAddition();
-        TreeSet<String> stageRemoval = readStageRemoval();
-        if (!stageAddition.isEmpty() || !stageRemoval.isEmpty()) {
-            throw new GitletException("You have uncommitted changes.");
-        }
+        validateStageArea();
         String targetCommitString = readContentsAsString(join(HEADS_DIR, targetBranchString));
         Commit targetCommit = Commit.readCommit(targetCommitString);
         validateUntrackedFiles(targetCommit);
@@ -223,9 +220,9 @@ public class Repository {
         for (String fileName : allFiles) {
             if (!splitBlob.contains(fileName)) {
                 if (!currentBlob.contains(fileName)) {
-                    join(CWD,fileName).createNewFile();
-                    writeContents(join(CWD, fileName)
-                            , readObject(join(BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class));
+                    join(CWD, fileName).createNewFile();
+                    writeContents(join(CWD, fileName),
+                            readObject(join(BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class));
                     add(fileName);
                 } else {
                     if (targetBlob.contains(fileName)) {
@@ -237,6 +234,9 @@ public class Repository {
                     if (splitPoint.getBlobmap().get(fileName).equals(
                             Commit.currentCommit().getBlobmap().get(fileName))) {
                         if (targetBlob.contains(fileName)) {
+                            join(CWD, fileName).createNewFile();
+                            writeContents(join(CWD, fileName),
+                                    readObject(join(BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class));
                             add(fileName);
                         } else {
                             rm(fileName);
@@ -253,17 +253,15 @@ public class Repository {
                     }
                 } else {
                     if (targetBlob.contains(fileName)) {
-                        if (splitPoint.getBlobmap().get(fileName).equals(
+                        if (!splitPoint.getBlobmap().get(fileName).equals(
                                 targetCommit.getBlobmap().get(fileName))) {
-                            rm(fileName);
+                            mergeConflict(targetCommit, fileName);
                         }
-                    } else {
-                        mergeConflict(targetCommit, fileName);
                     }
                 }
             }
         }
-        String commitMessage = String.format("Merged %s into %s",
+        String commitMessage = String.format("Merged %s into %s.",
                 targetBranchString, getCurrentBranch());
         commit(commitMessage, targetCommitString);
     }
@@ -277,18 +275,27 @@ public class Repository {
         }
     }
 
+    private static void validateStageArea() {
+        TreeMap<String, String> stageAddition = readStageAddition();
+        TreeSet<String> stageRemoval = readStageRemoval();
+        if (!stageAddition.isEmpty() || !stageRemoval.isEmpty()) {
+            throw new GitletException("You have uncommitted changes.");
+        }
+    }
+
     private static void mergeConflict(Commit targetCommit, String fileName) throws IOException {
         StringBuilder conflict = new StringBuilder("<<<<<<< HEAD\n");
         String currentFileContent = readObject(join(BOLB_DIR,
                 Commit.currentCommit().getBlobmap().get(fileName)), String.class);
-        conflict.append(String.format("%s\n", currentFileContent));
+        conflict.append(String.format("%s", currentFileContent));
         conflict.append("=======\n");
         String targetFileContent = readObject(join(
                 BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class);
-        conflict.append(String.format("%s\n", targetFileContent));
-        conflict.append(">>>>>>>\n");
+        conflict.append(String.format("%s", targetFileContent));
+        conflict.append(">>>>>>>");
         writeContents(join(CWD, fileName), conflict.toString());
         add(fileName);
+        System.out.println("Encountered a merge conflict.");
 
     }
 
@@ -304,7 +311,7 @@ public class Repository {
             for (String parentCommit : nowCommit.getAllParents()) {
                 Commit parentCommitObject = Commit.readCommit(parentCommit);
                 fringe.offer(parentCommitObject);
-                result.addFirst(parentCommit);
+                result.addLast(parentCommit);
             }
         }
         return result;

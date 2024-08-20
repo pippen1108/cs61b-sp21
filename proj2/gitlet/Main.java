@@ -14,6 +14,7 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args) {
+
         try {
             if (args.length == 0) {
                 throw new GitletException("Please enter a command.");
