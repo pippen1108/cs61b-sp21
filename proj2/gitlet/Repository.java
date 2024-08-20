@@ -122,7 +122,7 @@ public class Repository {
 
     }
 
-    public static void commit(String message) throws IOException {
+    public static void commit(String message, String mergeTargetCommit) throws IOException {
         if (message.isEmpty()) {
             throw new GitletException("Please enter a commit message.");
         }
@@ -135,7 +135,8 @@ public class Repository {
 
         Commit current = Commit.currentCommit();
 
-        Commit newCommit = new Commit(message, sha1(serialize(current)));
+        Commit newCommit = new Commit(message, sha1(serialize(current)), mergeTargetCommit);
+
         TreeMap<String, String> commitBlob = newCommit.getBlobmap();
         for (String key : stageAddition.keySet()) {
             commitBlob.put(key, stageAddition.get(key));
@@ -181,17 +182,28 @@ public class Repository {
     }
 
     public static void merge(String targetBranchString) throws IOException {
+        List<String> allBranches = plainFilenamesIn(HEADS_DIR);
+        assert allBranches != null;
+        if (!allBranches.contains(targetBranchString)) {
+            throw new GitletException("No such branch exists.");
+        }
+        if (getCurrentBranch().equals(targetBranchString)) {
+            throw new GitletException("Cannot merge a branch with itself.");
+        }
+        TreeMap<String, String> stageAddition = readStageAddition();
+        TreeSet<String> stageRemoval = readStageRemoval();
+        if (stageAddition.isEmpty() || stageRemoval.isEmpty()) {
+            throw new GitletException("You have uncommitted changes.");
+        }
+
         String targetCommitString = readContentsAsString(join(HEADS_DIR, targetBranchString));
         Commit targetCommit = Commit.readCommit(targetCommitString);
         validateUntrackedFiles(targetCommit);
 
         List<String> currentParentCommits = getCommitsParentsList(Commit.currentCommit());
-
-
         if (currentParentCommits.contains(targetCommitString)) {
             System.out.println("Given branch is an ancestor of the current branch.");
         }
-
         List<String> targetCurrentParentCommits = getCommitsParentsList(targetCommit);
         String currentCommitString = readContentsAsString(join(HEADS_DIR, getCurrentBranch()));
 
@@ -199,7 +211,6 @@ public class Repository {
             checkout(targetBranchString);
             System.out.println("Current branch fast-forwarded.");
         }
-
         Commit splitPoint = getLatestCommonAncestor(currentParentCommits, targetCurrentParentCommits);
         assert splitPoint != null;
         Set<String> splitBlob = splitPoint.getBlobmap().keySet();
@@ -223,41 +234,33 @@ public class Repository {
                     if (splitPoint.getBlobmap().get(fileName).equals(
                             Commit.currentCommit().getBlobmap().get(fileName))) {
                         if (targetBlob.contains(fileName)) {
-                            //situation 1 or 3-A the same
                             add(fileName);
                         } else {
-                            //situation 6
                             rm(fileName);
                         }
                     } else {
                         if (targetBlob.contains(fileName)) {
                             if (!splitPoint.getBlobmap().get(fileName).equals(
                                     targetCommit.getBlobmap().get(fileName))) {
-                                //conflict
                                 mergeConflict(targetCommit, fileName);
                             }
-                            // situation 2
                         } else {
-                            //conflict
                             mergeConflict(targetCommit, fileName);
                         }
                     }
                 } else {
                     if (targetBlob.contains(fileName)) {
                         if (splitPoint.getBlobmap().get(fileName).equals(targetCommit.getBlobmap().get(fileName))) {
-                            // situation 7
                             rm(fileName);
                         }
                     } else {
-                        //conflict
                         mergeConflict(targetCommit, fileName);
                     }
-                    // situation 3-A
                 }
             }
         }
-
-
+        String commitMessage = String.format("Merged %s into %s", currentCommitString, targetCommitString);
+        commit(commitMessage, targetCommitString);
     }
 
 
@@ -525,7 +528,7 @@ public class Repository {
 
     }
 
-    
+
 
     public static TreeMap readStageAddition() {
         return readObject(ADDITION_F, TreeMap.class);

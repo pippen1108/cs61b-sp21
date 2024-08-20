@@ -34,7 +34,7 @@ public class Main {
                     validateRepo();
                     validateNumArgs("commit", args, 2);
                     text = args[1];
-                    Repository.commit(text);
+                    Repository.commit(text, null);
                     break;
                 case "log":
                     validateRepo();

@@ -26,32 +26,26 @@ public class Commit implements Serializable {
     private final String message;
     private final Date timestamp;
     private final String parentString;
-    private final String mergetParentString;
-    private boolean isMerged = false;
+    private final String mergeParentString;
     private TreeMap<String, String> blobMap = new TreeMap<>();
     /** for the initial commit*/
     public Commit() {
         message = "initial commit";
         timestamp = new Date(0);
         parentString = null;
-        mergetParentString = null;
+        mergeParentString = null;
     }
 
-    public Commit(String message, String prentId) {
+    public Commit(String message, String prentId, String mergeParentId) {
         this.message = message;
         timestamp = new Date();
         parentString = prentId;
-        mergetParentString = null;
+        mergeParentString = mergeParentId;
         blobMap = readCommit(prentId).blobMap;
     }
 
-    public Commit(String currentBranch, String givenBranch, String originParentId, String mergeParentId, TreeMap<String, String> blobMap) {
-        message = String.format("Merged %s into %s.", givenBranch, currentBranch);
-        timestamp = new Date();
-        parentString = originParentId;
-        mergetParentString = mergeParentId;
-        this.blobMap = blobMap;
-        isMerged = true;
+    public String getMergeParentString() {
+        return mergeParentString;
     }
 
     public String getMessage() {
@@ -62,10 +56,6 @@ public class Commit implements Serializable {
     }
     public String getParentString() {
         return parentString;
-    }
-
-    public String getMergetParentString(){
-        return mergetParentString;
     }
 
     // write commit to file
@@ -114,7 +104,7 @@ public class Commit implements Serializable {
     public List<String> getAllParents() {
         List<String> parents = new LinkedList<>();
         parents.add(parentString);
-        parents.add(mergetParentString);
+        parents.add(mergeParentString);
         return parents;
     }
 }

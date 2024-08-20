@@ -135,7 +135,7 @@ public class Repository {
 
         Commit current = Commit.currentCommit();
 
-        Commit newCommit = new Commit(message, sha1(serialize(current)));
+        Commit newCommit = new Commit(message, sha1(serialize(current)), );
         TreeMap<String, String> commitBlob = newCommit.getBlobmap();
         for (String key : stageAddition.keySet()) {
             commitBlob.put(key, stageAddition.get(key));
