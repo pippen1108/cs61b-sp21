@@ -287,16 +287,15 @@ public class Repository {
 
     private static void mergeConflict(Commit targetCommit, String fileName) throws IOException {
         StringBuilder conflict = new StringBuilder("<<<<<<< HEAD\n");
-
-        String currentFileContent = readObject(join(BOLB_DIR,
-                Commit.currentCommit().getBlobmap().get(fileName)), String.class);
-        if (!currentFileContent.isEmpty()) {
+        if (join(BOLB_DIR, Commit.currentCommit().getBlobmap().get(fileName)).exists()) {
+            String currentFileContent = readObject(join(BOLB_DIR,
+                    Commit.currentCommit().getBlobmap().get(fileName)), String.class);
             conflict.append(String.format("%s", currentFileContent));
         }
         conflict.append("=======\n");
-        String targetFileContent = readObject(join(
-                BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class);
-        if (!targetFileContent.isEmpty()) {
+        if (join(BOLB_DIR, targetCommit.getBlobmap().get(fileName)).exists()) {
+            String targetFileContent = readObject(join(
+                    BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class);
             conflict.append(String.format("%s", targetFileContent));
         }
         conflict.append(">>>>>>>\n");
