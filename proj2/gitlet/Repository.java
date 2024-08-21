@@ -176,12 +176,11 @@ public class Repository {
             String formatDate = dateFormat.format(last.getTimestamp());
             log.append(String.format("Date: %s\n", formatDate));
             log.append(last.getMessage());
-            log.append("\n\n");
 
             if (last.getParentString() == null) {
                 break;
             }
-
+            log.append("\n\n");
             last = Commit.readCommit(last.getParentString());
         }
         System.out.println(log);
