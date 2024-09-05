@@ -34,18 +34,66 @@ public class HexWorld {
         public int getY() {
             return y;
         }
+        public void moveX(int steps) {
+            x = x + steps;
+        }
+        public void moveY(int steps) {
+            y = y + steps;
+        }
     }
 
 
+
+    /** using the drawRow method to draw a hexagon in the given World
+     * @param world : the world to draw
+     * @param tile : type of tile to draw
+     * @param p : the starting position
+     * @param size : the size of hexagon
+     */
+    public static void addHexagon(TETile[][] world, TETile tile, Position p, int size) {
+        if (size < 2) {
+            return;
+        }
+        addHexagonHelper(world, tile, p, size, size - 1);
+    }
+    
+
+    /** using the drawRow method to draw a hexagon in the given World
+     * @param world : the world to draw
+     * @param tile : type of tile to draw
+     * @param p : the starting position
+     * @param bricks : the number of tile need to draw
+     * @param blank : the number of tile that do not need to draw
+     *
+     */
+    public static void addHexagonHelper(TETile[][] world, TETile tile, Position p, int bricks, int blank) {
+
+        Position startTile = new Position(p.getX(), p.getY());
+        startTile.moveX(blank);
+
+        //draw the first Row
+        drawRow(world, tile, startTile, bricks);
+
+        //recursive call
+        if (blank > 0) {
+            p.moveY(-1);
+            addHexagonHelper(world, tile, p, bricks + 2, blank - 1);
+        }
+
+        //draw the Row in the other side of the hexagon
+        startTile.moveY(-(2 * blank + 1));
+        drawRow(world, tile, startTile, bricks);
+    }
+
     /**
-     * Draw a horizontal line of some kind of Tile in the TETile World start from a Position P
+     * Draw a horizontal Row of some kind of Tile in the TETile World start from a Position P
      * with Length.
      * @param world : the world to draw
      * @param tile : type of tile to draw
      * @param p : the starting position
-     * @param length : the length of the line
+     * @param length : the length of the Row
      */
-    public static void drawLine(TETile[][] world, TETile tile, Position p, int length) {
+    public static void drawRow(TETile[][] world, TETile tile, Position p, int length) {
         for (int x = p.getX(); x < p.getX() + length; x++) {
             world[x][p.getY()] = tile;
         }
@@ -70,15 +118,14 @@ public class HexWorld {
         ter.initialize(WIDTH, HEIGHT);
 
         TETile[][] hexTiles = new TETile[WIDTH][HEIGHT];
-
         for (int x = 0; x < WIDTH; x += 1) {
             for (int y = 0; y < HEIGHT; y += 1) {
                 hexTiles[x][y] = Tileset.NOTHING;
             }
         }
 
-        Position p = new Position(5, 5);
-        drawLine(hexTiles, randomTile(), p, 4);
+        Position p = new Position(20, 20);
+        addHexagon(hexTiles, randomTile(), p, 3);
         ter.renderFrame(hexTiles);
     }
 
