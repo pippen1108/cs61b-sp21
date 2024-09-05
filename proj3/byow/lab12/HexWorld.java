@@ -21,7 +21,7 @@ public class HexWorld {
     /**
      * Represent the Position in the TETile World
      */
-    public class Position {
+    public static class Position {
         private int x;
         private int y;
         public Position(int x, int y) {
@@ -33,6 +33,21 @@ public class HexWorld {
         }
         public int getY() {
             return y;
+        }
+    }
+
+
+    /**
+     * Draw a horizontal line of some kind of Tile in the TETile World start from a Position P
+     * with Length.
+     * @param world : the world to draw
+     * @param tile : type of tile to draw
+     * @param p : the starting position
+     * @param length : the length of the line
+     */
+    public static void drawLine(TETile[][] world, TETile tile, Position p, int length) {
+        for (int x = p.getX(); x < p.getX() + length; x++) {
+            world[x][p.getY()] = tile;
         }
     }
 
@@ -54,9 +69,17 @@ public class HexWorld {
         TERenderer ter = new TERenderer();
         ter.initialize(WIDTH, HEIGHT);
 
-        TETile[][] randomTiles = new TETile[WIDTH][HEIGHT];
+        TETile[][] hexTiles = new TETile[WIDTH][HEIGHT];
 
-        ter.renderFrame(randomTiles);
+        for (int x = 0; x < WIDTH; x += 1) {
+            for (int y = 0; y < HEIGHT; y += 1) {
+                hexTiles[x][y] = Tileset.NOTHING;
+            }
+        }
+
+        Position p = new Position(5, 5);
+        drawLine(hexTiles, randomTile(), p, 4);
+        ter.renderFrame(hexTiles);
     }
 
 }
