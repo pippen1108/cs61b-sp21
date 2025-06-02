@@ -1,8 +1,10 @@
 package gitlet;
 
 
+import java.io.File;
 import java.util.*;
 
+import static gitlet.Utils.join;
 import static gitlet.Utils.readObject;
 
 public class CommitGraph {
@@ -11,7 +13,10 @@ public class CommitGraph {
      * 從 commit ID 載入 Commit 物件
      */
     public static Commit read(String commitId) {
-        return readObject(Utils.join(Repository.COMMITS_DIR, commitId), Commit.class);
+        String commitDirString = commitId.substring(0, 2);
+        File commitDir = join(Repository.COMMITS_DIR,  commitDirString);
+        File commitFile = join(commitDir, commitId);
+        return readObject(commitFile, Commit.class);
     }
 
     /**
