@@ -249,7 +249,7 @@ public class Repository2 {
 
     private static void validateStageArea() {
         StagingArea staging = StagingArea.load();
-        if (staging.isEmpty()) {
+        if (!staging.isEmpty()) {
             throw new GitletException("You have uncommitted changes.");
         }
     }

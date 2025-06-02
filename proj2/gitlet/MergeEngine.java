@@ -67,7 +67,9 @@ public class MergeEngine {
     }
 
     private String readBlob(String blobId) {
-        if (blobId == null) return "";
+        if (blobId == null) {
+            return "";
+        }
         File blob = new File(BOLB_DIR, blobId);
         return readContentsAsString(blob);
     }
