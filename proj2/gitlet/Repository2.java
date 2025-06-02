@@ -1,11 +1,9 @@
 package gitlet;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.List;
 
 import static gitlet.Utils.*;
 
@@ -15,7 +13,7 @@ import static gitlet.Utils.*;
  *
  *  @author pippen
  */
-public class Repository {
+public class Repository2 {
     /** spec
      *
      *
@@ -61,7 +59,8 @@ public class Repository {
         STAGE_DIR.mkdir();
         ADDITION_F.createNewFile();
         REMOVAL_F.createNewFile();
-        createEmptyStage();
+        StagingArea staging = new StagingArea();
+        staging.save();
         Commit init = new Commit();
         String commitName = sha1(serialize(init));
         init.saveCommit(commitName);
@@ -80,48 +79,41 @@ public class Repository {
         //current commit
         Commit currentCommit = Commit.currentCommit();
 
-        TreeMap<String, String> stageAddition = readStageAddition();
-        TreeSet<String> stageRemoval = readStageRemoval();
+        StagingArea staging = StagingArea.load();
+
 
         TreeMap<String, String> commitBlob = currentCommit.getBlobmap();
         if (commitBlob.containsKey(fileName) && contentHash.equals(commitBlob.get(fileName))) {
-            stageAddition.remove(fileName);
+            staging.unstage(fileName);
         } else {
-            stageAddition.put(fileName, contentHash);
+            staging.add(fileName, contentHash);
             //create blob
             Blob add = new Blob(fileName);
             add.saveBlob();
         }
-        stageRemoval.remove(fileName);
 
-
-        //update the staging area file
-        writeStageAddition(stageAddition);
-        writeStageRemoval(stageRemoval);
+        staging.save();
 
     }
 
 
     public static void rm(String fileName) {
-        TreeMap<String, String> stageAddition = readStageAddition();
-        TreeSet<String> stageRemoval = readStageRemoval();
+        StagingArea staging = StagingArea.load();
+        Commit head = Commit.currentCommit();
+        TreeMap<String, String> commitBlobs = head.getBlobmap();
 
-        if (stageAddition.remove(fileName) != null) {
-            //update the staging area file
-            writeStageAddition(stageAddition);
+        boolean isStagedForAdd = staging.getAdditions().containsKey(fileName);
+        boolean isTrackedInCommit = commitBlobs.containsKey(fileName);
+
+        if (isStagedForAdd) {
+            staging.unstage(fileName); // 取消 staged for addition
+        } else if (isTrackedInCommit) {
+            staging.remove(fileName); // 加入 removals
+            restrictedDelete(fileName);
         } else {
-            Commit currentCommit = Commit.currentCommit();
-            TreeMap<String, String> commitBlob = currentCommit.getBlobmap();
-            if (commitBlob.containsKey(fileName)) {
-                stageRemoval.add(fileName);
-                restrictedDelete(fileName);
-                writeStageRemoval(stageRemoval);
-            } else {
-                throw new GitletException("No reason to remove the file.");
-            }
+            throw new GitletException("No reason to remove the file.");
         }
-
-
+        staging.save();
 
     }
 
@@ -130,34 +122,47 @@ public class Repository {
             throw new GitletException("Please enter a commit message.");
         }
 
-        TreeMap<String, String> stageAddition = readStageAddition();
-        TreeSet<String> stageRemoval = readStageRemoval();
-        if (stageAddition.isEmpty() && stageRemoval.isEmpty()) {
+        // 讀入 staging area
+        StagingArea staging = StagingArea.load();
+        if (staging.isEmpty()) {
             throw new GitletException("No changes added to the commit.");
         }
 
+        // 取得當前 commit
         Commit current = Commit.currentCommit();
+        String parentSha1 = sha1(serialize(current));
 
-        Commit newCommit = new Commit(message, sha1(serialize(current)), mergeTargetCommit);
+        // 建立新的 commit，設定父 commit hash
+        Commit newCommit = new Commit(message, parentSha1, mergeTargetCommit);
 
-        TreeMap<String, String> commitBlob = newCommit.getBlobmap();
-        for (String key : stageAddition.keySet()) {
-            commitBlob.put(key, stageAddition.get(key));
+        // 複製上一個 commit 的 blob map（深拷貝）
+        TreeMap<String, String> commitBlob = new TreeMap<>(current.getBlobmap());
+
+        // 加入 staging 中的新增/修改
+        for (Map.Entry<String, String> entry : staging.getAdditions().entrySet()) {
+            commitBlob.put(entry.getKey(), entry.getValue());
         }
-        for (String key : stageRemoval) {
-            commitBlob.remove(key);
+
+        // 移除 staging 中標記刪除的檔案
+        for (String fileName : staging.getRemovals()) {
+            commitBlob.remove(fileName);
         }
 
+        // 設定新的 blob map
+        newCommit.setBlobMap(commitBlob);
 
-        //update the staging area file
-        createEmptyStage();
+        // 清空 staging area 並儲存
+        staging.clear();
+        staging.save();
 
-        //store the commit file
+        // 儲存 commit 物件
         String commitName = sha1(serialize(newCommit));
         newCommit.saveCommit(commitName);
 
+        // 更新 HEAD 分支
         setBranch(getCurrentBranch(), commitName);
     }
+
 
 
     public static void log() {
@@ -188,85 +193,49 @@ public class Repository {
         System.out.println(log);
     }
 
-    public static void merge(String targetBranchString) throws IOException {
-        validateBranch(targetBranchString);
-        if (getCurrentBranch().equals(targetBranchString)) {
+    public static void merge(String targetBranchName) throws IOException {
+        validateBranch(targetBranchName);
+        if (getCurrentBranch().equals(targetBranchName)) {
             throw new GitletException("Cannot merge a branch with itself.");
         }
         validateStageArea();
-        String targetCommitString = readContentsAsString(join(HEADS_DIR, targetBranchString));
-        Commit targetCommit = Commit.readCommit(targetCommitString);
+
+        String targetCommitId = readContentsAsString(join(HEADS_DIR, targetBranchName));
+        Commit currentCommit = Commit.currentCommit();
+        Commit targetCommit = Commit.readCommit(targetCommitId);
+
         validateUntrackedFiles(targetCommit);
-        List<String> currentParentCommits = getCommitsParentsList(Commit.currentCommit());
-        if (currentParentCommits.contains(targetCommitString)) {
+
+        // Fast-forward checks
+        if (CommitGraph.getAllAncestors(currentCommit.getId()).contains(targetCommitId)) {
             throw new GitletException("Given branch is an ancestor of the current branch.");
         }
-        List<String> targetCurrentParentCommits = getCommitsParentsList(targetCommit);
-        String currentCommitString = readContentsAsString(join(HEADS_DIR, getCurrentBranch()));
-        if (targetCurrentParentCommits.contains(currentCommitString)) {
-            checkoutBranch(targetBranchString);
+        if (CommitGraph.getAllAncestors(targetCommitId).contains(currentCommit.getId())) {
+            checkoutBranch(targetBranchName);
             throw new GitletException("Current branch fast-forwarded.");
         }
-        Commit splitPoint = getLatestCommonAncestor(currentParentCommits,
-                targetCurrentParentCommits);
-        assert splitPoint != null;
-        Set<String> splitBlob = splitPoint.getBlobmap().keySet();
-        Set<String> currentBlob = Commit.currentCommit().getBlobmap().keySet();
-        Set<String> targetBlob = targetCommit.getBlobmap().keySet();
-        Set<String> allFiles = new HashSet<>();
-        allFiles.addAll(splitBlob);
-        allFiles.addAll(currentBlob);
-        allFiles.addAll(targetBlob);
-        for (String fileName : allFiles) {
-            if (!splitBlob.contains(fileName)) {
-                if (!currentBlob.contains(fileName)) {
-                    join(CWD, fileName).createNewFile();
-                    writeContents(join(CWD, fileName),
-                            readObject(join(BOLB_DIR,
-                                    targetCommit.getBlobmap().get(fileName)), String.class));
-                    add(fileName);
-                } else {
-                    if (targetBlob.contains(fileName)) {
-                        mergeConflict(targetCommit, fileName);
-                    }
-                }
-            } else {
-                if (currentBlob.contains(fileName)) {
-                    if (splitPoint.getBlobmap().get(fileName).equals(
-                            Commit.currentCommit().getBlobmap().get(fileName))) {
-                        if (targetBlob.contains(fileName)) {
-                            join(CWD, fileName).createNewFile();
-                            writeContents(join(CWD, fileName),
-                                    readObject(join(BOLB_DIR,
-                                            targetCommit.getBlobmap().get(fileName)),
-                                            String.class));
-                            add(fileName);
-                        } else {
-                            rm(fileName);
-                        }
-                    } else {
-                        if (targetBlob.contains(fileName)) {
-                            if (!splitPoint.getBlobmap().get(fileName).equals(
-                                    targetCommit.getBlobmap().get(fileName))) {
-                                mergeConflict(targetCommit, fileName);
-                            }
-                        } else {
-                            mergeConflict(targetCommit, fileName);
-                        }
-                    }
-                } else {
-                    if (targetBlob.contains(fileName)) {
-                        if (!splitPoint.getBlobmap().get(fileName).equals(
-                                targetCommit.getBlobmap().get(fileName))) {
-                            mergeConflict(targetCommit, fileName);
-                        }
-                    }
-                }
-            }
+
+        // Execute merge using MergeEngine
+        MergeEngine engine = new MergeEngine(currentCommit, targetCommit);
+        engine.runMerge();
+        Map<String, String> mergedFiles = engine.getMergedFiles();
+
+        // Write merged contents to working directory and stage them
+        for (Map.Entry<String, String> entry : mergedFiles.entrySet()) {
+            String fileName = entry.getKey();
+            String content = entry.getValue();
+            writeContents(join(CWD, fileName), content);
+            add(fileName);  // stage the merged version
         }
-        String commitMessage = String.format("Merged %s into %s.",
-                targetBranchString, getCurrentBranch());
-        commit(commitMessage, targetCommitString);
+
+        // Print conflict message if any
+        if (engine.hasConflict()) {
+            System.out.println("Encountered a merge conflict.");
+        }
+
+        // Create merge commit
+        String mergeMsg = String.format("Merged %s into %s.", targetBranchName, getCurrentBranch());
+        commit(mergeMsg, targetCommitId);  // second parent is targetCommit
     }
 
 
@@ -279,60 +248,12 @@ public class Repository {
     }
 
     private static void validateStageArea() {
-        TreeMap<String, String> stageAddition = readStageAddition();
-        TreeSet<String> stageRemoval = readStageRemoval();
-        if (!stageAddition.isEmpty() || !stageRemoval.isEmpty()) {
+        StagingArea staging = StagingArea.load();
+        if (staging.isEmpty()) {
             throw new GitletException("You have uncommitted changes.");
         }
     }
 
-    private static void mergeConflict(Commit targetCommit, String fileName) throws IOException {
-        StringBuilder conflict = new StringBuilder("<<<<<<< HEAD\n");
-        if (Commit.currentCommit().getBlobmap().containsKey(fileName)) {
-            String currentFileContent = readObject(join(BOLB_DIR,
-                    Commit.currentCommit().getBlobmap().get(fileName)), String.class);
-            conflict.append(String.format("%s", currentFileContent));
-        }
-        conflict.append("=======\n");
-        if (targetCommit.getBlobmap().containsKey(fileName)) {
-            String targetFileContent = readObject(join(
-                    BOLB_DIR, targetCommit.getBlobmap().get(fileName)), String.class);
-            conflict.append(String.format("%s", targetFileContent));
-        }
-        conflict.append(">>>>>>>\n");
-        writeContents(join(CWD, fileName), conflict.toString());
-        add(fileName);
-        System.out.println("Encountered a merge conflict.");
-
-    }
-
-    private static LinkedList<String> getCommitsParentsList(Commit targetCommit) {
-        LinkedList<String> result = new LinkedList<>();
-
-        Queue<Commit> fringe = new LinkedList<>();
-        fringe.offer(targetCommit);
-
-        while (!fringe.isEmpty()) {
-            Commit nowCommit =  fringe.poll();
-            assert nowCommit != null;
-            for (String parentCommit : nowCommit.getAllParents()) {
-                Commit parentCommitObject = Commit.readCommit(parentCommit);
-                fringe.offer(parentCommitObject);
-                result.addLast(parentCommit);
-            }
-        }
-        return result;
-    }
-
-    private static Commit getLatestCommonAncestor(List<String> currentCommitParentsList,
-                                                  List<String> givenCommitParentsList) {
-        for (String commitHash : currentCommitParentsList) {
-            if (givenCommitParentsList.contains(commitHash)) {
-                return Commit.readCommit(commitHash);
-            }
-        }
-        return null;
-    }
 
     public static void globalLog() {
         StringBuilder log = new StringBuilder();
@@ -409,7 +330,8 @@ public class Repository {
         // put the version of file of the target commit and overwrite if it exists in the cwd
         overwriteWorkingDirectory(targetCommit);
         cleanUpFilesNotInTargetBranch(targetCommit);
-        createEmptyStage();
+        StagingArea staging = StagingArea.load();
+        staging.clear();
         setHEADpointer(branchName);
     }
 
@@ -473,7 +395,8 @@ public class Repository {
         validateUntrackedFiles(targetCommit);
         overwriteWorkingDirectory(targetCommit);
         cleanUpFilesNotInTargetBranch(targetCommit);
-        createEmptyStage();
+        StagingArea staging = StagingArea.load();
+        staging.clear();
         setBranch(getCurrentBranch(), commitHash);
     }
 
@@ -490,8 +413,9 @@ public class Repository {
             status.append(String.format("%s\n", branch));
         }
         status.append("\n");
+        StagingArea staging = StagingArea.load();
 
-        Set<String> stagedFiles =  readStageAddition().keySet();
+        Set<String> stagedFiles =  staging.getAdditions().keySet();
         status.append("=== Staged Files ===\n");
         if (!stagedFiles.isEmpty()) {
             for (String stagedFile : stagedFiles) {
@@ -500,7 +424,7 @@ public class Repository {
         }
         status.append("\n");
 
-        TreeSet<String> removedFiles =  readStageRemoval();
+        TreeSet<String> removedFiles = staging.getRemovals();
         status.append("=== Removed Files ===\n");
         if (!removedFiles.isEmpty()) {
             for (String removedFile : removedFiles) {
@@ -560,32 +484,6 @@ public class Repository {
     }
 
 
-
-    public static TreeMap readStageAddition() {
-        return readObject(ADDITION_F, TreeMap.class);
-    }
-
-    public static TreeSet readStageRemoval() {
-        return readObject(REMOVAL_F, TreeSet.class);
-    }
-
-
-    public static void  writeStageAddition(TreeMap<String, String> stage) {
-        writeObject(ADDITION_F, stage);
-    }
-
-    public static void writeStageRemoval(TreeSet<String> stage) {
-        writeObject(REMOVAL_F, stage);
-    }
-
-    public static void createEmptyStage() {
-        TreeMap<String, String> stageAddition = new TreeMap<>();
-        writeObject(ADDITION_F, stageAddition);
-        TreeSet<String> stageRemoval = new TreeSet<>();
-        writeObject(REMOVAL_F, stageRemoval);
-    }
-
-
     public static void setHEADpointer(String branch) {
         writeContents(HEADS_F, branch);
     }
@@ -597,7 +495,7 @@ public class Repository {
     }
 
     private static String getCurrentBranch() {
-        return readContentsAsString(Repository.HEADS_F);
+        return readContentsAsString(Repository2.HEADS_F);
     }
 
     public static void setBranch(String branch, String commitHash) {

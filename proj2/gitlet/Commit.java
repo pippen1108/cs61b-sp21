@@ -68,6 +68,15 @@ public class Commit implements Serializable {
         writeObject(commitFile, this);
     }
 
+    public void setBlobMap(TreeMap<String, String> blobMap) {
+        this.blobMap = blobMap;
+    }
+
+    public String getId() {
+        return sha1(serialize(this));
+    }
+
+
     public static Commit currentCommit() {
         String currentBranch = readContentsAsString(Repository.HEADS_F);
         String commitHash = readContentsAsString(join(Repository.HEADS_DIR, currentBranch));

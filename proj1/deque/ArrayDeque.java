@@ -163,13 +163,22 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         size--;
         return result;
     }
+    private int getValidIndex(int p, int arrayLength) {
+        return Math.floorMod(p, arrayLength);
+    }
 
     @Override
     public T get(int index) {
-        if (index >= size || index < 0) {
+        if (this.isEmpty()) {
             return null;
         }
-        return items[(nextFirst + 1 + index) % items.length];
+
+        if (index < 0 || index >= size) {
+            return null;
+        }
+
+        int validIndex = getValidIndex(nextFirst + 1 + index, items.length);
+        return items[validIndex];
     }
 
 }

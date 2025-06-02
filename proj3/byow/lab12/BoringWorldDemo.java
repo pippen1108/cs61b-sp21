@@ -19,15 +19,15 @@ public class BoringWorldDemo {
 
         // initialize tiles
         TETile[][] world = new TETile[WIDTH][HEIGHT];
-        for (int x = 0; x < WIDTH; x += 1) {
+        for (int x = 0; x < WIDTH ; x += 1) {
             for (int y = 0; y < HEIGHT; y += 1) {
-                world[x][y] = Tileset.NOTHING;
+                world[x][y] = Tileset.FLOWER;
             }
         }
 
         // fills in a block 14 tiles wide by 4 tiles tall
-        for (int x = 20; x < 35; x += 1) {
-            for (int y = 5; y < 10; y += 1) {
+        for (int x = 10; x  < 15; x += 1) {
+            for (int y = 0;y < 5; y += 1) {
                 world[x][y] = Tileset.WALL;
             }
         }

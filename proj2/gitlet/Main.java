@@ -23,46 +23,46 @@ public class Main {
             String text;
             switch (firstArg) {
                 case "init":
-                    Repository.initialCommit();
+                    Repository2.initialCommit();
                     break;
                 case "add":
                     validateRepo();
                     validateNumArgs("add", args, 2);
                     text = args[1];
-                    Repository.add(text);
+                    Repository2.add(text);
                     break;
                 case "commit":
                     validateRepo();
                     validateNumArgs("commit", args, 2);
                     text = args[1];
-                    Repository.commit(text, null);
+                    Repository2.commit(text, null);
                     break;
                 case "log":
                     validateRepo();
                     validateNumArgs("log", args, 1);
-                    Repository.log();
+                    Repository2.log();
                     break;
                 case "global-log":
                     validateNumArgs("global-log", args, 1);
-                    Repository.globalLog();
+                    Repository2.globalLog();
                     break;
                 case "status":
                     validateRepo();
                     validateNumArgs("status", args, 1);
-                    Repository.status();
+                    Repository2.status();
                     break;
                 case "checkout":
                     validateRepo();
                     if (args.length == 3 && args[1].equals("--")) {
                         String fileName = args[2];
-                        Repository.checkout(fileName);
+                        Repository2.checkout(fileName);
                     } else if (args.length == 4 && args[2].equals("--")) {
                         String commitId = args[1];
                         String fileName = args[3];
-                        Repository.checkout(fileName, commitId);
+                        Repository2.checkout(fileName, commitId);
                     } else if (args.length == 2) {
                         String branch = args[1];
-                        Repository.checkoutBranch(branch);
+                        Repository2.checkoutBranch(branch);
                     } else {
                         throw new GitletException("Incorrect operands.");
                     }
@@ -71,37 +71,37 @@ public class Main {
                     validateRepo();
                     validateNumArgs("find", args, 2);
                     text = args[1];
-                    Repository.find(text);
+                    Repository2.find(text);
                     break;
                 case "reset":
                     validateRepo();
                     validateNumArgs("reset", args, 2);
                     text = args[1];
-                    Repository.reset(text);
+                    Repository2.reset(text);
                     break;
                 case "branch":
                     validateRepo();
                     validateNumArgs("branch", args, 2);
                     text = args[1];
-                    Repository.branch(text);
+                    Repository2.branch(text);
                     break;
                 case "rm-branch":
                     validateRepo();
                     validateNumArgs("rm-branch", args, 2);
                     text = args[1];
-                    Repository.rmBranch(text);
+                    Repository2.rmBranch(text);
                     break;
                 case "rm":
                     validateRepo();
                     validateNumArgs("rm", args, 2);
                     text = args[1];
-                    Repository.rm(text);
+                    Repository2.rm(text);
                     break;
                 case "merge":
                     validateRepo();
                     validateNumArgs("merge", args, 2);
                     text = args[1];
-                    Repository.merge(text);
+                    Repository2.merge(text);
                     break;
                 default:
                     throw new GitletException("No command with that name exists.");
@@ -112,7 +112,7 @@ public class Main {
     }
 
     public static void validateRepo() {
-        if (!join(Repository.GITLET_DIR).exists()) {
+        if (!join(Repository2.GITLET_DIR).exists()) {
             throw new GitletException("Not in an initialized Gitlet directory.");
         }
     }

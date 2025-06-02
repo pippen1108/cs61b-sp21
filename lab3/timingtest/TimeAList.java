@@ -7,8 +7,8 @@ import edu.princeton.cs.introcs.In;
  */
 public class TimeAList {
     private static void printTimingTable(AList<Integer> Ns, AList<Double> times, AList<Integer> opCounts) {
-        System.out.printf("%12s %12s %12s %12s\n", "N", "time (s)", "# ops", "microsec/op");
-        System.out.printf("------------------------------------------------------------\n");
+        System.out.printf("%12s %12s %12s %18s\n", "N", "time (s)", "# ops", "microsec/op");
+        System.out.print("------------------------------------------------------------\n");
         for (int i = 0; i < Ns.size(); i += 1) {
             int N = Ns.get(i);
             double time = times.get(i);
@@ -22,11 +22,36 @@ public class TimeAList {
         timeAListConstruction();
     }
 
+    public static  void timeAListConstruction2() {
+        //construct the three alist and use the printTimingTable to print out
+        int [] ns = new int[]{1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000};
+        AList<Integer> Ns = new AList<>();
+        AList<Double> times = new AList<>();
+        AList<Integer> opCount = new AList<>();
+
+        for (int n : ns) {
+            Ns.addLast(n);
+
+            AList<Integer> test = new AList<>();
+            int op = 0;
+            Stopwatch sw = new Stopwatch();
+            while (op < n) {
+                test.addLast(0);
+                op += 1;
+            }
+            times.addLast(sw.elapsedTime());
+
+            opCount.addLast(op);
+        }
+        printTimingTable(Ns, times, opCount);
+
+    }
+
     public static void timeAListConstruction() {
         int[] tests = new int[]{1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000, 1000000};
         AList<Integer> Ns = new AList<>();
         AList<Integer> opCounts = new AList<>();
-        AList<Double> times =new AList<>();
+        AList<Double> times = new AList<>();
 
         for (int j : tests) {
             opCounts.addLast(j);
