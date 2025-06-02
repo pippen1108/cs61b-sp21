@@ -69,7 +69,8 @@ public class MergeEngine {
             }
 
             // case 3: file added in both branches with different content
-            if (splitBlob == null && currentBlob != null && givenBlob != null && !Objects.equals(currentBlob, givenBlob)) {
+            if (splitBlob == null && currentBlob != null &&
+                    givenBlob != null && !Objects.equals(currentBlob, givenBlob)) {
                 String conflictContent = "<<<<<<< HEAD\n" + readBlob(currentBlob)
                         + "=======\n" + readBlob(givenBlob) + ">>>>>>>\n";
                 mergedFiles.put(file, conflictContent);
