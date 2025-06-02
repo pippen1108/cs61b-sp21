@@ -5,7 +5,7 @@ import java.util.*;
 
 import static gitlet.Repository2.BOLB_DIR;
 import static gitlet.Repository2.rm;
-import static gitlet.Utils.readContentsAsString;
+import static gitlet.Utils.*;
 
 public class MergeEngine {
     private final Commit current;
@@ -101,10 +101,9 @@ public class MergeEngine {
     }
 
     private String readBlob(String blobId) {
-        if (blobId == null) {
-            return "";
-        }
-        File blob = new File(BOLB_DIR, blobId);
-        return readContentsAsString(blob);
+        if (blobId == null) return "";
+        File blob = join(Repository.BOLB_DIR, blobId);
+        return readObject(blob, String.class);  // ✅ 反序列化回 String
     }
 }
+
