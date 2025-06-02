@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.*;
 
 import static gitlet.Repository2.BOLB_DIR;
+import static gitlet.Repository2.rm;
 import static gitlet.Utils.readContentsAsString;
 
 public class MergeEngine {
@@ -50,7 +51,7 @@ public class MergeEngine {
             // case 1: split == current => take given (added or modified)
             if (Objects.equals(splitBlob, currentBlob)) {
                 if (givenBlob == null) {
-                    // deleted in given
+                    rm(file);
                     continue;
                 }
                 mergedFiles.put(file, readBlob(givenBlob));
@@ -60,7 +61,7 @@ public class MergeEngine {
             // case 2: split == given => take current
             if (Objects.equals(splitBlob, givenBlob)) {
                 if (currentBlob == null) {
-                    // deleted in current
+                    rm(file);
                     continue;
                 }
                 mergedFiles.put(file, readBlob(currentBlob));
