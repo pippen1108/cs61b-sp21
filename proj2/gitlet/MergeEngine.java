@@ -39,20 +39,53 @@ public class MergeEngine {
             String currentBlob = currentMap.get(file);
             String givenBlob = givenMap.get(file);
 
+            // case 0: same on both sides or same changes
             if (Objects.equals(currentBlob, givenBlob)) {
-                continue; // same or both unchanged
-            } else if (Objects.equals(splitBlob, currentBlob)) {
-                mergedFiles.put(file, readBlob(givenBlob));
-            } else if (Objects.equals(splitBlob, givenBlob)) {
-                mergedFiles.put(file, readBlob(currentBlob));
-            } else {
-                String content = "<<<<<<< HEAD\n" + readBlob(currentBlob)
-                        + "=======\n" + readBlob(givenBlob) + ">>>>>>>\n";
-                mergedFiles.put(file, content);
-                hasConflict = true;
+                if (currentBlob != null) {
+                    mergedFiles.put(file, readBlob(currentBlob));
+                }
+                continue;
             }
+
+            // case 1: split == current => take given (added or modified)
+            if (Objects.equals(splitBlob, currentBlob)) {
+                if (givenBlob == null) {
+                    // deleted in given
+                    continue;
+                }
+                mergedFiles.put(file, readBlob(givenBlob));
+                continue;
+            }
+
+            // case 2: split == given => take current
+            if (Objects.equals(splitBlob, givenBlob)) {
+                if (currentBlob == null) {
+                    // deleted in current
+                    continue;
+                }
+                mergedFiles.put(file, readBlob(currentBlob));
+                continue;
+            }
+
+            // case 3: file added in both branches with different content
+            if (splitBlob == null && currentBlob != null && givenBlob != null && !Objects.equals(currentBlob, givenBlob)) {
+                String conflictContent = "<<<<<<< HEAD\n" + readBlob(currentBlob)
+                        + "=======\n" + readBlob(givenBlob) + ">>>>>>>\n";
+                mergedFiles.put(file, conflictContent);
+                hasConflict = true;
+                continue;
+            }
+
+            // case 4: conflict – all others
+            String currentContent = currentBlob == null ? "" : readBlob(currentBlob);
+            String givenContent = givenBlob == null ? "" : readBlob(givenBlob);
+            String conflictContent = "<<<<<<< HEAD\n" + currentContent
+                    + "=======\n" + givenContent + ">>>>>>>\n";
+            mergedFiles.put(file, conflictContent);
+            hasConflict = true;
         }
     }
+
 
     public Map<String, String> getMergedFiles() {
         return mergedFiles;
