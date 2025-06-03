@@ -44,7 +44,6 @@ public class RoomChat {
     public void generateWorld(TETile[][] world) {
         // Step 1: 填滿 NOTHING
         TERenderer ter = new TERenderer();
-        ter.initialize(WIDTH, HEIGHT);
 
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
@@ -55,7 +54,6 @@ public class RoomChat {
         generateRooms(world, 20, 0.8);
         connectRooms(world);
         addWalls(world);
-        ter.renderFrame(world);
     }
 
 
