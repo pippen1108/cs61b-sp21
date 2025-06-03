@@ -35,13 +35,6 @@ public class Repository2 {
     static final File STAGE_DIR = join(GITLET_DIR, "stage");
     static final File ADDITION_F = join(STAGE_DIR, "addition");
     static final File REMOVAL_F = join(STAGE_DIR, "removal");
-    /** a lot of commits
-     */
-
-
-
-    
-    
     
     public static void initialCommit() throws IOException {
         if (GITLET_DIR.exists()) {
@@ -253,7 +246,6 @@ public class Repository2 {
             throw new GitletException("You have uncommitted changes.");
         }
     }
-
 
     public static void globalLog() {
         StringBuilder log = new StringBuilder();
@@ -501,7 +493,6 @@ public class Repository2 {
     public static void setBranch(String branch, String commitHash) {
         writeContents(join(HEADS_DIR, branch), commitHash);
     }
-
 
 
 }

@@ -2,6 +2,11 @@ package byow.Core;
 
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
+import byow.TileEngine.Tileset;
+
+import java.util.Random;
+
+import static byow.Core.RoomChat.*;
 
 public class Engine {
     TERenderer ter = new TERenderer();
@@ -45,8 +50,31 @@ public class Engine {
         //
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
+        input = input.toUpperCase();  // 忽略大小寫
+        if (input.charAt(0) != 'N') {
+            throw new IllegalArgumentException("Must start with 'N'");
+        }
 
-        TETile[][] finalWorldFrame = null;
-        return finalWorldFrame;
+        int index = 1;
+        StringBuilder seedBuilder = new StringBuilder();
+        while (index < input.length() && Character.isDigit(input.charAt(index))) {
+            seedBuilder.append(input.charAt(index));
+            index++;
+        }
+
+        if (index >= input.length() || input.charAt(index) != 'S') {
+            throw new IllegalArgumentException("Missing 'S' to mark end of seed");
+        }
+
+        long seed = Long.parseLong(seedBuilder.toString());
+
+        // 初始化你的世界
+        Random random = new Random(seed);
+        RoomChat generator = new RoomChat(WIDTH, HEIGHT, random); // 你實作的 class
+        TETile[][] world = new TETile[WIDTH][HEIGHT];
+        generator.generateWorld(world);
+
+        return world;
+
     }
 }

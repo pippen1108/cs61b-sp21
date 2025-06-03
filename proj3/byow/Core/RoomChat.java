@@ -27,14 +27,39 @@ public class RoomChat {
         }
     }
 
-    private static final int WIDTH = 50;
-    private static final int HEIGHT = 50;
-    private static final long SEED = 2873125;
-    private static final Random RANDOM = new Random(SEED);
+    private static int WIDTH;
+    private static int HEIGHT;
+    private static Random RANDOM;
     private static final List<Position> roomCenters = new ArrayList<>();
 
+
+    public RoomChat (int w, int h, Random r) {
+        WIDTH = w;
+        HEIGHT = h;
+        RANDOM = r;
+
+    }
+
+
+    public void generateWorld(TETile[][] world) {
+        // Step 1: 填滿 NOTHING
+        TERenderer ter = new TERenderer();
+        ter.initialize(WIDTH, HEIGHT);
+
+        for (int x = 0; x < WIDTH; x++) {
+            for (int y = 0; y < HEIGHT; y++) {
+                world[x][y] = Tileset.NOTHING;
+            }
+        }
+
+        generateRooms(world, 20, 0.8);
+        connectRooms(world);
+        addWalls(world);
+        ter.renderFrame(world);
+    }
+
+
     public static void addRoomHelper(TETile[][] world, Position p, int l, int h) {
-        drawWalls(world, p, l, h);
         drawInterior(world, p, l, h);
 
         int centerX = p.getX() + l / 2;
@@ -42,11 +67,22 @@ public class RoomChat {
         roomCenters.add(new Position(centerX, centerY));
     }
 
-    private static void drawWalls(TETile[][] world, Position p, int l, int h) {
-        drawRow(world, Tileset.WALL, p, l + 2);
-        drawRow(world, Tileset.WALL, new Position(p.getX(), p.getY() + h + 1), l + 2);
-        drawCol(world, Tileset.WALL, p, h + 2);
-        drawCol(world, Tileset.WALL, new Position(p.getX() + l + 1, p.getY()), h + 2);
+    public static void addWalls(TETile[][] world) {
+        for (int x = 1; x < WIDTH - 1; x++) {
+            for (int y = 1; y < HEIGHT - 1; y++) {
+                if (world[x][y] == Tileset.FLOOR) { // 地板
+                    for (int dx = -1; dx <= 1; dx++) {
+                        for (int dy = -1; dy <= 1; dy++) {
+                            int nx = x + dx;
+                            int ny = y + dy;
+                            if (world[nx][ny] == Tileset.NOTHING) { // 邊緣空白 -> 補牆
+                                world[nx][ny] = Tileset.WALL;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static void drawInterior(TETile[][] world, Position p, int l, int h) {
@@ -57,14 +93,10 @@ public class RoomChat {
 
     private static void drawHallwayRow(TETile[][] world, Position p, int length) {
         drawRow(world, Tileset.FLOOR, new Position(p.getX(), p.getY()), length);
-        drawRow(world, Tileset.WALL, new Position(p.getX(), p.getY() + 1), length);
-        drawRow(world, Tileset.WALL, new Position(p.getX(), p.getY() - 1), length);
     }
 
     private static void drawHallwayCol(TETile[][] world, Position p, int length) {
         drawCol(world, Tileset.FLOOR, new Position(p.getX(), p.getY()), length);
-        drawCol(world, Tileset.WALL, new Position(p.getX() - 1, p.getY()), length);
-        drawCol(world, Tileset.WALL, new Position(p.getX() + 1, p.getY()), length);
     }
 
     public static void drawRow(TETile[][] world, TETile tile, Position p, int length) {
@@ -112,7 +144,7 @@ public class RoomChat {
         return true;
     }
 
-    private static void connectRooms(TETile[][] world) {
+    static void connectRooms(TETile[][] world) {
         List<Position> connectedRooms = new ArrayList<>();
         connectedRooms.add(roomCenters.get(0)); // 將第一個房間標記為已連接
 
@@ -157,18 +189,8 @@ public class RoomChat {
     }
 
     public static void main(String[] args) {
-        TERenderer ter = new TERenderer();
-        ter.initialize(WIDTH, HEIGHT);
 
-        TETile[][] hexTiles = new TETile[WIDTH][HEIGHT];
-        for (int x = 0; x < WIDTH; x++) {
-            for (int y = 0; y < HEIGHT; y++) {
-                hexTiles[x][y] = Tileset.NOTHING;
-            }
-        }
 
-        generateRooms(hexTiles, 20, 0.6);
-        connectRooms(hexTiles);
-        ter.renderFrame(hexTiles);
+
     }
 }
